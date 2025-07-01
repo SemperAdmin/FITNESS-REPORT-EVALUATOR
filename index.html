@@ -492,11 +492,16 @@
             <h1>USMC FITNESS REPORT EVALUATOR</h1>
             <p>Unbiased FITREP marking assistance tool</p>
             <div class="tool-credit">by Semper Admin</div>
-            <a href="https://youtu.be/EzhEMDJ6ez0" target="_blank" style="color: #1e40af; text-decoration: underline;">FITREPS: Marking Philosophy Video</a></div>
-
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
+
+    <!-- Bottom Link -->
+    <div style="display: flex; justify-content: center; margin: 20px 0; padding: 15px;">
+        <p style="font-size: 0.9rem; color: #ff0000; text-align: center; background: rgba(255, 255, 255, 0.1); padding: 10px 20px; border-radius: 8px; backdrop-filter: blur(10px);">
+          Follow Semper Admin on all platforms: <a href="https://linktr.ee/semperadmin" target="_blank" style="color: #ff0000; text-decoration: underline; font-weight: 600;">https://linktr.ee/semperadmin</a>
+        </p>
+    </div>
             <div id="progressText">Setup - Determine Role</div>
         </div>
 
@@ -736,9 +741,8 @@
             const trait = allTraits[currentTraitIndex];
             const gradeInfo = firepData.gradeDescriptions[currentEvaluationLevel];
 
-            // Determine button states
+            // Determine button states - only disable "Does Not Meet" at A
             const isAtA = currentEvaluationLevel === 'A';
-            const isAtF = currentEvaluationLevel === 'F';
 
             container.innerHTML = `
                 <div class="evaluation-card active">
@@ -760,8 +764,7 @@
                         <button class="btn btn-meets" onclick="handleGradeAction('meets')">
                             Meets
                         </button>
-                        <button class="btn btn-surpasses" onclick="handleGradeAction('surpasses')" 
-                                ${isAtF ? 'disabled' : ''}>
+                        <button class="btn btn-surpasses" onclick="handleGradeAction('surpasses')">
                             Surpasses
                         </button>
                     </div>
