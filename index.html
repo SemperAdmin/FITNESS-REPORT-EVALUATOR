@@ -581,6 +581,85 @@
             text-align: center;
         }
 
+        .help-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+            z-index: 999;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .help-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.6);
+        }
+
+        .help-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1001;
+            overflow-y: auto;
+        }
+
+        .help-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+            padding: 20px;
+        }
+
+        .help-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            text-align: left;
+        }
+
+        .help-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .help-close:hover {
+            background: #f0f0f0;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -611,6 +690,20 @@
             .justification-content {
                 width: 95%;
                 padding: 20px;
+            }
+            
+            .help-button {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+                bottom: 15px;
+                right: 15px;
+            }
+            
+            .help-content {
+                width: 95%;
+                padding: 20px;
+                margin: 10px;
             }
         }
 
@@ -904,6 +997,72 @@
                 <button class="btn btn-export" onclick="exportToClipboard()">Copy to Clipboard</button>
                 <button class="btn btn-export" onclick="exportToPDF()">Export PDF</button>
                 <button class="btn btn-export" onclick="resetEvaluation()">Start Over</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Help Button -->
+    <button class="help-button" onclick="openHelpModal()" title="How This Tool Works">
+        ?
+    </button>
+
+    <!-- Help Modal -->
+    <div class="help-modal" id="helpModal">
+        <div class="help-content">
+            <button class="help-close" onclick="closeHelpModal()">&times;</button>
+            
+            <div class="setup-title" style="text-align: center; margin-bottom: 25px;">How This Tool Works</div>
+            
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #1e3c72; margin-bottom: 10px;">🎯 Unbiased Evaluation Philosophy</h3>
+                <p style="line-height: 1.6; margin-bottom: 15px;">
+                    Traditional FITREP marking often suffers from <strong>grade inflation</strong> and <strong>preconceived notions</strong>. 
+                    Evaluators frequently decide on a final grade first, then justify it backward. This tool eliminates that bias.
+                </p>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #1e3c72; margin-bottom: 10px;">📊 Left-to-Right Methodology</h3>
+                <p style="line-height: 1.6; margin-bottom: 10px;">For each trait, you'll be presented with descriptive performance standards:</p>
+                <ul style="margin-left: 20px; line-height: 1.6;">
+                    <li><strong>Start at B:</strong> "Meets requirements, maintains status quo"</li>
+                    <li><strong>Move to D:</strong> "Consistently produces quality results, improves unit performance"</li>
+                    <li><strong>Move to F:</strong> "Results far surpass expectations, significant impact"</li>
+                </ul>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #1e3c72; margin-bottom: 10px;">🔍 Three-Choice Decision Making</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                    <div style="background: #ffe6e6; padding: 10px; border-radius: 6px; text-align: center;">
+                        <strong style="color: #d32f2f;">Does Not Meet</strong><br>
+                        <small>Select previous grade</small>
+                    </div>
+                    <div style="background: #e8f5e8; padding: 10px; border-radius: 6px; text-align: center;">
+                        <strong style="color: #2e7d32;">Meets</strong><br>
+                        <small>Accept current standard</small>
+                    </div>
+                    <div style="background: #e3f2fd; padding: 10px; border-radius: 6px; text-align: center;">
+                        <strong style="color: #1976d2;">Surpasses</strong><br>
+                        <small>Move to next level</small>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #1e3c72; margin-bottom: 10px;">📝 Enhanced Justification Tools</h3>
+                <p style="line-height: 1.6;">
+                    Each marking requires <strong>specific justification</strong> with examples and evidence. 
+                    The tool provides writing assistance, word count tracking, and example templates to ensure quality.
+                </p>
+            </div>
+
+            <div style="background: #f0f7ff; padding: 15px; border-radius: 8px; border-left: 4px solid #2196F3;">
+                <h4 style="color: #1565c0; margin-bottom: 8px;">💡 Result: Enterprise-Ready Evaluations</h4>
+                <p style="line-height: 1.6; margin: 0; font-size: 14px;">
+                    Auto-save, review capabilities, statistical analysis, and quality validation ensure 
+                    professional, defensible FITREP markings that meet Marine Corps standards.
+                </p>
             </div>
         </div>
     </div>
@@ -1810,6 +1969,14 @@
             }
         }
 
+        function openHelpModal() {
+            document.getElementById('helpModal').classList.add('active');
+        }
+
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.remove('active');
+        }
+
         // Initialize application
         document.addEventListener('DOMContentLoaded', function() {
             initializeVoiceRecognition();
@@ -1824,6 +1991,13 @@
             document.getElementById('justificationModal').addEventListener('click', function(e) {
                 if (e.target === this) {
                     cancelJustification();
+                }
+            });
+            
+            // Close help modal when clicking outside
+            document.getElementById('helpModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeHelpModal();
                 }
             });
             
