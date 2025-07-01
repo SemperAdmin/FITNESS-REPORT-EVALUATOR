@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -51,15 +51,11 @@
             margin-top: 10px;
         }
 
-        .progress-section {
-            margin: 20px 0;
-        }
-
         .progress-bar {
             background: rgba(255, 255, 255, 0.2);
-            height: 12px;
-            border-radius: 6px;
-            margin: 10px 0;
+            height: 8px;
+            border-radius: 4px;
+            margin: 20px 0;
             overflow: hidden;
         }
 
@@ -67,39 +63,44 @@
             background: linear-gradient(90deg, #4CAF50, #45a049);
             height: 100%;
             transition: width 0.3s ease;
-            border-radius: 6px;
+            border-radius: 4px;
         }
 
-        .progress-details {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
-            color: #1e3c72;
-        }
-
-        .auto-save-indicator {
-            font-size: 12px;
-            color: #4CAF50;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .auto-save-indicator.active {
-            opacity: 1;
-        }
-
-        .warning-banner {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
-            padding: 15px;
-            border-radius: 8px;
+        .setup-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 30px;
             margin-bottom: 20px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
             text-align: center;
         }
 
-        .setup-card, .evaluation-card, .review-card {
+        .setup-card.active {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .setup-title {
+            font-size: 24px;
+            color: #1e3c72;
+            margin-bottom: 20px;
+        }
+
+        .setup-select {
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin: 20px 0;
+            min-width: 250px;
+        }
+
+        .setup-select:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+
+        .evaluation-card {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 16px;
             padding: 30px;
@@ -109,7 +110,7 @@
             display: none;
         }
 
-        .setup-card.active, .evaluation-card.active, .review-card.active {
+        .evaluation-card.active {
             display: block;
             animation: slideIn 0.5s ease-out;
         }
@@ -117,44 +118,6 @@
         @keyframes slideIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-
-        .setup-title {
-            font-size: 24px;
-            color: #1e3c72;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #1e3c72;
-        }
-
-        .form-input, .setup-select {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-input:focus, .setup-select:focus {
-            outline: none;
-            border-color: #2a5298;
-        }
-
-        .date-inputs {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
         }
 
         .trait-header {
@@ -240,9 +203,19 @@
             color: white;
         }
 
+        .btn-does-not-meet:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(238, 90, 82, 0.3);
+        }
+
         .btn-meets {
             background: linear-gradient(135deg, #4CAF50, #45a049);
             color: white;
+        }
+
+        .btn-meets:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
         }
 
         .btn-surpasses {
@@ -250,21 +223,9 @@
             color: white;
         }
 
-        .btn-secondary {
-            background: linear-gradient(135deg, #9e9e9e, #757575);
-            color: white;
-        }
-
-        .btn-export {
-            background: linear-gradient(135deg, #9c27b0, #7b1fa2);
-            color: white;
-            padding: 12px 25px;
-            margin: 0 5px;
-        }
-
-        .btn:hover:not(:disabled) {
+        .btn-surpasses:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 25px rgba(33, 150, 243, 0.3);
         }
 
         .btn:disabled {
@@ -301,9 +262,9 @@
             background: white;
             padding: 30px;
             border-radius: 12px;
-            max-width: 700px;
+            max-width: 600px;
             width: 90%;
-            max-height: 90vh;
+            max-height: 80vh;
             overflow-y: auto;
         }
 
@@ -325,100 +286,21 @@
             margin-bottom: 15px;
         }
 
-        .justification-tools {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .tool-btn {
-            padding: 8px 15px;
-            background: #f5f5f5;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background-color 0.3s ease;
-        }
-
-        .tool-btn:hover {
-            background: #e0e0e0;
-        }
-
-        .tool-btn.active {
-            background: #2196F3;
-            color: white;
-        }
-
-        .examples-dropdown {
-            position: relative;
-        }
-
-        .examples-list {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 10;
-            display: none;
-        }
-
-        .examples-list.active {
-            display: block;
-        }
-
-        .example-item {
-            padding: 10px;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
-            font-size: 12px;
-        }
-
-        .example-item:hover {
-            background: #f5f5f5;
-        }
-
         .justification-textarea {
             width: 100%;
-            min-height: 150px;
+            min-height: 120px;
             padding: 15px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 14px;
             font-family: inherit;
             resize: vertical;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
         }
 
         .justification-textarea:focus {
             outline: none;
             border-color: #2a5298;
-        }
-
-        .textarea-info {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 20px;
-        }
-
-        .word-count {
-            color: #2a5298;
-        }
-
-        .word-count.warning {
-            color: #ff9800;
-        }
-
-        .word-count.error {
-            color: #f44336;
         }
 
         .justification-buttons {
@@ -427,128 +309,14 @@
             justify-content: center;
         }
 
-        .review-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin: 20px 0;
+        .btn-save {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
         }
 
-        .review-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #2a5298;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .review-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .review-item.editing {
-            border-left-color: #ff9800;
-            background: #fff8e1;
-        }
-
-        .review-trait {
-            font-weight: 600;
-            color: #1e3c72;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-
-        .review-grade {
-            font-size: 18px;
-            font-weight: bold;
-            color: #2a5298;
-            margin-bottom: 8px;
-        }
-
-        .review-justification {
-            font-size: 12px;
-            color: #555;
-            line-height: 1.4;
-            max-height: 60px;
-            overflow: hidden;
-        }
-
-        .statistics-panel {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
-            margin: 20px 0;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin: 15px 0;
-        }
-
-        .stat-item {
-            text-align: center;
-            padding: 15px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2a5298;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .distribution-chart {
-            display: flex;
-            height: 30px;
-            border-radius: 15px;
-            overflow: hidden;
-            margin: 10px 0;
-            background: #e0e0e0;
-        }
-
-        .distribution-segment {
-            transition: width 0.5s ease;
-        }
-
-        .validation-warnings {
-            margin: 20px 0;
-        }
-
-        .warning-item {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .warning-item.error {
-            background: #f8d7da;
-            border-color: #f5c6cb;
-            color: #721c24;
-        }
-
-        .supervisor-section {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f0f7ff;
-            border-radius: 12px;
-            border: 1px solid #bbdefb;
+        .btn-cancel {
+            background: linear-gradient(135deg, #9e9e9e, #757575);
+            color: white;
         }
 
         .summary-card {
@@ -576,88 +344,55 @@
             font-weight: bold;
         }
 
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .summary-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #2a5298;
+        }
+
+        .summary-trait {
+            font-weight: 600;
+            color: #1e3c72;
+            margin-bottom: 5px;
+        }
+
+        .summary-grade {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2a5298;
+            margin-bottom: 5px;
+        }
+
+        .summary-justification {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.4;
+            font-style: italic;
+        }
+
         .export-section {
             margin-top: 30px;
             text-align: center;
         }
 
-        .help-button {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #2196F3, #1976D2);
+        .btn-export {
+            background: linear-gradient(135deg, #9c27b0, #7b1fa2);
             color: white;
-            border: none;
-            border-radius: 50%;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
-            z-index: 999;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            padding: 12px 25px;
+            margin: 0 10px;
         }
 
-        .help-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.6);
-        }
-
-        .help-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1001;
-            overflow-y: auto;
-        }
-
-        .help-modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.3s ease;
-            padding: 20px;
-        }
-
-        .help-content {
-            background: white;
-            padding: 30px;
-            border-radius: 16px;
-            max-width: 800px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-            text-align: left;
-        }
-
-        .help-close {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #666;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: background-color 0.3s ease;
-        }
-
-        .help-close:hover {
-            background: #f0f0f0;
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(156, 39, 176, 0.3);
         }
 
         @media (max-width: 768px) {
@@ -675,49 +410,21 @@
                 max-width: 280px;
             }
             
-            .date-inputs {
+            .summary-grid {
                 grid-template-columns: 1fr;
-            }
-            
-            .justification-tools {
-                justify-content: center;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
             }
 
             .justification-content {
                 width: 95%;
                 padding: 20px;
             }
-            
-            .help-button {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-                bottom: 15px;
-                right: 15px;
-            }
-            
-            .help-content {
-                width: 95%;
-                padding: 20px;
-                margin: 10px;
-            }
         }
 
         @media print {
-            @page {
-                size: letter;
-                margin: 0.5in;
-            }
-            
             body {
                 background: white !important;
                 color: black !important;
-                font-size: 9px !important;
-                line-height: 1.2 !important;
+                font-size: 12px !important;
             }
             
             .container {
@@ -726,7 +433,7 @@
                 margin: 0 !important;
             }
             
-            .header, .export-section, .statistics-panel, .warning-banner {
+            .header, .export-section {
                 display: none !important;
             }
             
@@ -734,93 +441,47 @@
                 background: white !important;
                 box-shadow: none !important;
                 border-radius: 0 !important;
-                padding: 0 !important;
+                padding: 10px !important;
                 margin: 0 !important;
                 page-break-inside: avoid;
-                height: 100vh;
-                overflow: hidden;
-            }
-            
-            .summary-card h2 {
-                font-size: 14px !important;
-                margin-bottom: 8px !important;
-                text-align: center;
-                border-bottom: 2px solid #333;
-                padding-bottom: 4px !important;
             }
             
             .fitrep-average {
                 background: #f0f0f0 !important;
                 color: black !important;
-                font-size: 12px !important;
-                padding: 4px 8px !important;
-                margin: 6px 0 !important;
-                text-align: center;
-                border: 1px solid #333;
+                font-size: 18px !important;
+                padding: 10px !important;
+                margin: 10px 0 !important;
             }
             
-            #evaluationMeta {
-                font-size: 8px !important;
-                margin: 4px 0 !important;
-                text-align: center;
-                border-bottom: 1px solid #ccc;
-                padding-bottom: 4px !important;
-            }
-            
-            .review-grid {
-                display: grid !important;
+            .summary-grid {
                 grid-template-columns: repeat(2, 1fr) !important;
-                gap: 3px !important;
-                margin: 6px 0 0 0 !important;
-                font-size: 8px !important;
+                gap: 8px !important;
+                margin: 10px 0 !important;
             }
             
-            .review-item {
+            .summary-item {
                 background: #f8f9fa !important;
-                padding: 4px !important;
-                border-radius: 2px !important;
-                border-left: 1px solid #333 !important;
+                padding: 8px !important;
+                border-radius: 4px !important;
+                border-left: 2px solid #333 !important;
+                font-size: 11px !important;
                 page-break-inside: avoid;
-                margin: 0 !important;
-                height: auto !important;
-                overflow: hidden;
             }
             
-            .review-trait {
-                font-size: 8px !important;
-                font-weight: bold !important;
-                margin-bottom: 1px !important;
-                line-height: 1.1 !important;
+            .summary-trait {
+                font-size: 12px !important;
+                margin-bottom: 3px !important;
             }
             
-            .review-grade {
-                font-size: 9px !important;
-                font-weight: bold !important;
-                margin-bottom: 2px !important;
-                line-height: 1.1 !important;
+            .summary-grade {
+                font-size: 14px !important;
+                margin-bottom: 3px !important;
             }
             
-            .review-justification {
-                font-size: 7px !important;
-                line-height: 1.1 !important;
-                max-height: 60px !important;
-                overflow: hidden !important;
-                margin: 0 !important;
-                text-overflow: ellipsis;
-                display: -webkit-box;
-                -webkit-line-clamp: 6;
-                -webkit-box-orient: vertical;
-            }
-            
-            /* Force single page */
-            .summary-card * {
-                page-break-inside: avoid !important;
-            }
-            
-            /* Ensure everything fits in available space */
-            .review-grid {
-                max-height: calc(100vh - 120px) !important;
-                overflow: hidden !important;
+            .summary-justification {
+                font-size: 10px !important;
+                line-height: 1.2 !important;
             }
         }
     </style>
@@ -831,59 +492,49 @@
             <h1>USMC FITNESS REPORT EVALUATOR</h1>
             <p>Unbiased FITREP marking assistance tool</p>
             <div class="tool-credit">by Semper Admin</div>
-            <a href="https://youtu.be/EzhEMDJ6ez0" target="_blank" style="color: #1e40af; text-decoration: underline;">FITREPS: Marking Philosophy Video</a>
-            
-            <div class="progress-section">
-                <div class="progress-details">
-                    <span id="progressText">Setup - Determine Role</span>
-                    <span class="auto-save-indicator" id="autoSaveIndicator">✓ Auto-saved</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
             </div>
-        </div>
 
-        <!-- Data Warning Banner -->
-        <div class="warning-banner" id="dataWarning">
-            ⚠️ <strong>Data Privacy Notice:</strong> This tool stores data locally in your browser. Data will be lost if you clear browser storage or use incognito mode. For official evaluations, save your work frequently and export results.
+    <!-- Bottom Link -->
+    <div style="display: flex; justify-content: center; margin: 20px 0; padding: 15px;">
+        <p style="font-size: 0.9rem; color: #ff0000; text-align: center; background: rgba(255, 255, 255, 0.1); padding: 10px 20px; border-radius: 8px; backdrop-filter: blur(10px);">
+          Follow Semper Admin on all platforms: <a href="https://linktr.ee/semperadmin" target="_blank" style="color: #ff0000; text-decoration: underline; font-weight: 600;">https://linktr.ee/semperadmin</a>
+        </p>
+    </div>
+            <div id="progressText">Setup - Determine Role</div>
         </div>
 
         <!-- Setup Card -->
-        <div class="setup-card active" id="setupCard">
-            <div class="setup-title">Evaluation Setup</div>
-            
-            <div class="form-group">
-                <label class="form-label">Marine Being Evaluated:</label>
-                <input type="text" class="form-input" id="marineNameInput" placeholder="Last Name, First Name MI">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Evaluation Period:</label>
-                <div class="date-inputs">
-                    <input type="date" class="form-input" id="fromDateInput">
-                    <input type="date" class="form-input" id="toDateInput">
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Is the person being evaluated a Reporting Senior?</label>
-                <select class="setup-select" id="reportingSeniorSelect">
-                    <option value="">Select...</option>
-                    <option value="yes">Yes - Include Section H (Evaluation Responsibilities)</option>
-                    <option value="no">No - Standard Evaluation (Sections D-G only)</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Evaluator Information:</label>
-                <input type="text" class="form-input" id="evaluatorNameInput" placeholder="Your Name">
-            </div>
-            
-            <button class="btn btn-meets" onclick="startEvaluation()" style="margin-top: 20px; width: 100%;">Begin Evaluation</button>
+        <div class="setup-card" id="setupCard">
+            <div class="setup-title">Setup Evaluation</div>
+            <p style="margin-bottom: 20px;">Is the person being evaluated a Reporting Senior?</p>
+            <select class="setup-select" id="reportingSeniorSelect">
+                <option value="">Select...</option>
+                <option value="yes">Yes - Include Section H (Evaluation Responsibilities)</option>
+                <option value="no">No - Standard Evaluation (Sections D-G only)</option>
+            </select>
+            <br>
+            <button class="btn btn-meets" onclick="startEvaluation()" style="margin-top: 20px;">Begin Evaluation</button>
         </div>
 
-        <!-- How This Works Card -->
+        <!-- Evaluation Cards -->
+        <div id="evaluationContainer"></div>
+
+        <!-- Summary Card -->
+        <div class="summary-card" id="summaryCard">
+            <h2 style="text-align: center; color: #1e3c72; margin-bottom: 20px;">FITREP Evaluation Summary</h2>
+            <div class="fitrep-average" id="fitrepAverage"></div>
+            <div id="summaryGrid" class="summary-grid"></div>
+            <div class="export-section">
+                <button class="btn btn-export" onclick="window.print()">Print Summary</button>
+                <button class="btn btn-export" onclick="exportToClipboard()">Copy to Clipboard</button>
+                <button class="btn btn-export" onclick="resetEvaluation()">Start Over</button>
+            </div>
+        </div>
+    </div>
+
+            <!-- How This Works Card -->
         <div class="setup-card" id="howItWorksCard" style="text-align: left;">
             <div class="setup-title" style="text-align: center;">How This Tool Works</div>
             
@@ -924,149 +575,22 @@
             </div>
 
             <div style="margin-bottom: 20px;">
-                <h3 style="color: #1e3c72; margin-bottom: 10px;">📝 Enhanced Justification Tools</h3>
+                <h3 style="color: #1e3c72; margin-bottom: 10px;">📝 Required Justification</h3>
                 <p style="line-height: 1.6;">
-                    Each marking requires <strong>specific justification</strong> with examples and evidence. 
-                    The tool provides writing assistance, word count tracking, and example templates to ensure quality.
+                    Every marking decision requires <strong>specific justification</strong> with examples and evidence. 
+                    This ensures accountability and provides valuable feedback to the Marine being evaluated.
                 </p>
             </div>
 
             <div style="background: #f0f7ff; padding: 15px; border-radius: 8px; border-left: 4px solid #2196F3;">
-                <h4 style="color: #1565c0; margin-bottom: 8px;">💡 Result: Enterprise-Ready Evaluations</h4>
+                <h4 style="color: #1565c0; margin-bottom: 8px;">💡 Result: Objective, Defensible Evaluations</h4>
                 <p style="line-height: 1.6; margin: 0; font-size: 14px;">
-                    Auto-save, review capabilities, statistical analysis, and quality validation ensure 
-                    professional, defensible FITREP markings that meet Marine Corps standards.
+                    By evaluating performance against established standards rather than predetermined outcomes, 
+                    this tool produces more accurate, fair, and legally defensible FITREP markings that truly reflect Marine performance.
                 </p>
             </div>
         </div>
-
-        <!-- Evaluation Cards -->
-        <div id="evaluationContainer"></div>
-
-        <!-- Review Card -->
-        <div class="review-card" id="reviewCard">
-            <div class="setup-title">Review & Finalize Evaluation</div>
-            
-            <div class="statistics-panel">
-                <h3 style="color: #1e3c72; margin-bottom: 15px;">Evaluation Statistics</h3>
-                <div class="stats-grid" id="statsGrid"></div>
-                <div class="distribution-chart" id="distributionChart"></div>
-            </div>
-            
-            <div class="validation-warnings" id="validationWarnings"></div>
-            
-            <p style="margin-bottom: 20px; color: #666;">
-                Review your markings below. Click any trait to edit its grade or justification.
-            </p>
-            
-            <div class="review-grid" id="reviewGrid"></div>
-            
-            <div class="supervisor-section">
-                <h3 style="color: #1e3c72; margin-bottom: 15px;">Supervisor Review</h3>
-                <div class="form-group">
-                    <label class="form-label">Reviewing Officer Name:</label>
-                    <input type="text" class="form-input" id="reviewerNameInput" placeholder="Reviewing Officer Name">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Reviewing Officer Comments:</label>
-                    <textarea class="form-input" id="reviewerCommentsInput" rows="4" 
-                             placeholder="Additional comments on performance and potential..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">
-                        <input type="checkbox" id="concurCheckbox" style="margin-right: 8px;">
-                        I concur with the markings and justifications provided
-                    </label>
-                </div>
-            </div>
-            
-            <div style="text-align: center; margin-top: 30px;">
-                <button class="btn btn-secondary" onclick="backToEvaluation()">← Back to Evaluation</button>
-                <button class="btn btn-meets" onclick="finalizeEvaluation()">Finalize Evaluation</button>
-            </div>
-        </div>
-
-        <!-- Summary Card -->
-        <div class="summary-card" id="summaryCard">
-            <h2 style="text-align: center; color: #1e3c72; margin-bottom: 20px;">FITREP Evaluation Summary</h2>
-            <div class="fitrep-average" id="fitrepAverage"></div>
-            <div id="evaluationMeta" style="text-align: center; margin: 20px 0; color: #666;"></div>
-            <div class="review-grid" id="summaryGrid"></div>
-            <div class="export-section">
-                <button class="btn btn-export" onclick="window.print()">Print Summary</button>
-                <button class="btn btn-export" onclick="exportToClipboard()">Copy to Clipboard</button>
-                <button class="btn btn-export" onclick="exportToPDF()">Export PDF</button>
-                <button class="btn btn-export" onclick="resetEvaluation()">Start Over</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Floating Help Button -->
-    <button class="help-button" onclick="openHelpModal()" title="How This Tool Works">
-        ?
-    </button>
-
-    <!-- Help Modal -->
-    <div class="help-modal" id="helpModal">
-        <div class="help-content">
-            <button class="help-close" onclick="closeHelpModal()">&times;</button>
-            
-            <div class="setup-title" style="text-align: center; margin-bottom: 25px;">How This Tool Works</div>
-            
-            <div style="margin-bottom: 20px;">
-                <h3 style="color: #1e3c72; margin-bottom: 10px;">🎯 Unbiased Evaluation Philosophy</h3>
-                <p style="line-height: 1.6; margin-bottom: 15px;">
-                    Traditional FITREP marking often suffers from <strong>grade inflation</strong> and <strong>preconceived notions</strong>. 
-                    Evaluators frequently decide on a final grade first, then justify it backward. This tool eliminates that bias.
-                </p>
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <h3 style="color: #1e3c72; margin-bottom: 10px;">📊 Left-to-Right Methodology</h3>
-                <p style="line-height: 1.6; margin-bottom: 10px;">For each trait, you'll be presented with descriptive performance standards:</p>
-                <ul style="margin-left: 20px; line-height: 1.6;">
-                    <li><strong>Start at B:</strong> "Meets requirements, maintains status quo"</li>
-                    <li><strong>Move to D:</strong> "Consistently produces quality results, improves unit performance"</li>
-                    <li><strong>Move to F:</strong> "Results far surpass expectations, significant impact"</li>
-                </ul>
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <h3 style="color: #1e3c72; margin-bottom: 10px;">🔍 Three-Choice Decision Making</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
-                    <div style="background: #ffe6e6; padding: 10px; border-radius: 6px; text-align: center;">
-                        <strong style="color: #d32f2f;">Does Not Meet</strong><br>
-                        <small>Select previous grade</small>
-                    </div>
-                    <div style="background: #e8f5e8; padding: 10px; border-radius: 6px; text-align: center;">
-                        <strong style="color: #2e7d32;">Meets</strong><br>
-                        <small>Accept current standard</small>
-                    </div>
-                    <div style="background: #e3f2fd; padding: 10px; border-radius: 6px; text-align: center;">
-                        <strong style="color: #1976d2;">Surpasses</strong><br>
-                        <small>Move to next level</small>
-                    </div>
-                </div>
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <h3 style="color: #1e3c72; margin-bottom: 10px;">📝 Enhanced Justification Tools</h3>
-                <p style="line-height: 1.6;">
-                    Each marking requires <strong>specific justification</strong> with examples and evidence. 
-                    The tool provides writing assistance, word count tracking, and example templates to ensure quality.
-                </p>
-            </div>
-
-            <div style="background: #f0f7ff; padding: 15px; border-radius: 8px; border-left: 4px solid #2196F3;">
-                <h4 style="color: #1565c0; margin-bottom: 8px;">💡 Result: Enterprise-Ready Evaluations</h4>
-                <p style="line-height: 1.6; margin: 0; font-size: 14px;">
-                    Auto-save, review capabilities, statistical analysis, and quality validation ensure 
-                    professional, defensible FITREP markings that meet Marine Corps standards.
-                </p>
-            </div>
-        </div>
-    </div>
-
+        
     <!-- Justification Modal -->
     <div class="justification-modal" id="justificationModal">
         <div class="justification-content">
@@ -1075,40 +599,17 @@
                 <div class="justification-grade" id="justificationGrade"></div>
                 <p>Please provide justification for this marking:</p>
             </div>
-            
-            <div class="justification-tools">
-                <button class="tool-btn" onclick="toggleVoiceInput()" id="voiceBtn">🎤 Voice Input</button>
-                <div class="examples-dropdown">
-                    <button class="tool-btn" onclick="toggleExamples()">📝 Examples</button>
-                    <div class="examples-list" id="examplesList"></div>
-                </div>
-                <button class="tool-btn" onclick="spellCheck()">✓ Spell Check</button>
-            </div>
-            
             <textarea class="justification-textarea" id="justificationText" 
                      placeholder="Enter specific examples and evidence to support this evaluation..."></textarea>
-            
-            <div class="textarea-info">
-                <span class="word-count" id="wordCount">0 words</span>
-                <span>Minimum recommended: 30 words</span>
-            </div>
-            
             <div class="justification-buttons">
-                <button class="btn btn-secondary" onclick="cancelJustification()">Cancel</button>
-                <button class="btn btn-meets" onclick="saveJustification()">Save & Continue</button>
+                <button class="btn btn-save" onclick="saveJustification()">Save & Continue</button>
+                <button class="btn btn-cancel" onclick="cancelJustification()">Cancel</button>
             </div>
         </div>
     </div>
 
-    <!-- Bottom Link -->
-    <div style="display: flex; justify-content: center; margin: 20px 0; padding: 15px;">
-        <p style="font-size: 0.9rem; color: #ffffff; text-align: center; background: rgba(255, 255, 255, 0.1); padding: 10px 20px; border-radius: 8px; backdrop-filter: blur(10px);">
-          Follow Semper Admin on all platforms: <a href="https://linktr.ee/semperadmin" target="_blank" style="color: #fbbf24; text-decoration: underline; font-weight: 600;">https://linktr.ee/semperadmin</a>
-        </p>
-    </div>
-
     <script>
-        // FITREP Trait Data Model with examples
+        // FITREP Trait Data Model - All 14 traits
         const firepData = {
             sections: {
                 D: {
@@ -1116,29 +617,11 @@
                     traits: {
                         performance: {
                             name: "Performance",
-                            description: "Results achieved during the reporting period. How well those duties inherent to a Marine's billet, plus all additional duties, formally and informally assigned, were carried out.",
-                            examples: {
-                                A: "Failed to complete assigned tasks, required constant supervision",
-                                B: "Completed all assigned duties, met deadlines consistently",
-                                C: "Completed basic requirements but showed limited initiative",
-                                D: "Exceeded expectations, improved unit procedures, mentored subordinates",
-                                E: "Strong performance but fell short of exceptional standards",
-                                F: "Exceptional performance, led major initiatives, recognized by senior leadership",
-                                G: "Outstanding performance exceeding all expectations"
-                            }
+                            description: "Results achieved during the reporting period. How well those duties inherent to a Marine's billet, plus all additional duties, formally and informally assigned, were carried out."
                         },
                         proficiency: {
                             name: "Proficiency", 
-                            description: "Demonstrates technical knowledge and practical skill in the execution of the Marine's overall duties. Combines training, education and experience.",
-                            examples: {
-                                A: "Lacks basic technical skills required for position",
-                                B: "Demonstrates competent technical knowledge and skills",
-                                C: "Basic proficiency with room for improvement",
-                                D: "Strong technical expertise, trains others effectively",
-                                E: "Good technical skills but not quite expert level",
-                                F: "Technical expert, sought after for complex problems",
-                                G: "Exceptional technical mastery"
-                            }
+                            description: "Demonstrates technical knowledge and practical skill in the execution of the Marine's overall duties. Combines training, education and experience."
                         }
                     }
                 },
@@ -1147,42 +630,15 @@
                     traits: {
                         courage: {
                             name: "Courage",
-                            description: "Moral or physical strength to overcome danger, fear, difficulty or anxiety. Personal acceptance of responsibility and accountability.",
-                            examples: {
-                                A: "Avoided difficult situations, failed to take responsibility",
-                                B: "Demonstrated appropriate courage when required",
-                                C: "Showed courage in routine situations",
-                                D: "Consistently brave in challenging situations, accepted responsibility",
-                                E: "Good courage but not consistently exceptional",
-                                F: "Exceptional bravery, inspiration to others, selfless actions",
-                                G: "Outstanding courage in all circumstances"
-                            }
+                            description: "Moral or physical strength to overcome danger, fear, difficulty or anxiety. Personal acceptance of responsibility and accountability, placing conscience over competing interests regardless of consequences."
                         },
                         effectiveness_under_stress: {
                             name: "Effectiveness Under Stress",
-                            description: "Thinking, functioning and leading effectively under conditions of physical and/or mental pressure.",
-                            examples: {
-                                A: "Poor performance under pressure, became overwhelmed",
-                                B: "Maintained composure under normal stress levels",
-                                C: "Adequate stress management with some limitations",
-                                D: "Excellent under pressure, provided stability to unit",
-                                E: "Good stress management but occasional difficulties",
-                                F: "Exceptional under extreme stress, steadied others",
-                                G: "Outstanding resilience under all conditions"
-                            }
+                            description: "Thinking, functioning and leading effectively under conditions of physical and/or mental pressure. Maintaining composure appropriate for the situation."
                         },
                         initiative: {
                             name: "Initiative",
-                            description: "Action in the absence of specific direction. Seeing what needs to be done and acting without prompting.",
-                            examples: {
-                                A: "Required constant direction, showed no initiative",
-                                B: "Took appropriate initiative when situations arose",
-                                C: "Some initiative but waited for direction",
-                                D: "Proactive, identified and solved problems independently",
-                                E: "Good initiative but not consistently proactive",
-                                F: "Exceptional initiative, created new opportunities",
-                                G: "Outstanding proactive leadership"
-                            }
+                            description: "Action in the absence of specific direction. Seeing what needs to be done and acting without prompting. The instinct to begin a task and follow through energetically."
                         }
                     }
                 },
@@ -1191,68 +647,23 @@
                     traits: {
                         leading_subordinates: {
                             name: "Leading Subordinates",
-                            description: "The inseparable relationship between leader and led. The application of leadership principles to provide direction and motivate subordinates.",
-                            examples: {
-                                A: "Poor leadership, low subordinate morale and performance",
-                                B: "Adequate leadership, subordinates performed duties satisfactorily",
-                                C: "Basic leadership skills with room for growth",
-                                D: "Strong leader, motivated subordinates to high performance",
-                                E: "Good leadership but inconsistent results",
-                                F: "Exceptional leader, subordinates exceeded all expectations",
-                                G: "Outstanding leadership inspiring extraordinary performance"
-                            }
+                            description: "The inseparable relationship between leader and led. The application of leadership principles to provide direction and motivate subordinates."
                         },
                         developing_subordinates: {
                             name: "Developing Subordinates",
-                            description: "Commitment to train, educate, and challenge all Marines regardless of race, religion, ethnic background, or gender.",
-                            examples: {
-                                A: "Failed to develop subordinates, no mentorship provided",
-                                B: "Provided adequate training and development opportunities",
-                                C: "Basic development efforts with limited impact",
-                                D: "Excellent mentor, subordinates showed significant growth",
-                                E: "Good developmental efforts but inconsistent follow-through",
-                                F: "Exceptional mentor, subordinates achieved remarkable growth",
-                                G: "Outstanding development program with lasting impact"
-                            }
+                            description: "Commitment to train, educate, and challenge all Marines regardless of race, religion, ethnic background, or gender. Mentorship and cultivating professional development."
                         },
                         setting_example: {
                             name: "Setting the Example",
-                            description: "The most visible facet of leadership: how well a Marine serves as a role model for all others.",
-                            examples: {
-                                A: "Poor example, inappropriate conduct observed",
-                                B: "Maintained proper standards and conduct consistently",
-                                C: "Generally good example with minor lapses",
-                                D: "Excellent role model, inspired others through personal example",
-                                E: "Good example but not consistently inspiring",
-                                F: "Exceptional role model, widely emulated by peers and subordinates",
-                                G: "Outstanding example that set the standard for others"
-                            }
+                            description: "The most visible facet of leadership: how well a Marine serves as a role model for all others. Personal action demonstrates the highest standards of conduct."
                         },
                         ensuring_wellbeing: {
                             name: "Ensuring Well-being of Subordinates",
-                            description: "Genuine interest in the well-being of Marines. Efforts enhance subordinates' ability to concentrate/focus on unit mission accomplishment.",
-                            examples: {
-                                A: "Neglected subordinate welfare, poor unit morale",
-                                B: "Ensured basic welfare needs were met appropriately",
-                                C: "Adequate attention to welfare with room for improvement",
-                                D: "Excellent care for subordinates, high unit morale",
-                                E: "Good welfare efforts but not consistently comprehensive",
-                                F: "Exceptional welfare programs, subordinates felt genuinely cared for",
-                                G: "Outstanding welfare leadership creating strong unit cohesion"
-                            }
+                            description: "Genuine interest in the well-being of Marines. Efforts enhance subordinates' ability to concentrate/focus on unit mission accomplishment."
                         },
                         communication_skills: {
                             name: "Communication Skills",
-                            description: "The efficient transmission and receipt of thoughts and ideas that enable and enhance leadership.",
-                            examples: {
-                                A: "Poor communication, frequent misunderstandings",
-                                B: "Communicated effectively in routine situations",
-                                C: "Adequate communication with occasional clarity issues",
-                                D: "Excellent communicator, clear and inspiring",
-                                E: "Good communication but sometimes unclear",
-                                F: "Exceptional communicator, influenced others effectively",
-                                G: "Outstanding communication inspiring confidence"
-                            }
+                            description: "The efficient transmission and receipt of thoughts and ideas that enable and enhance leadership. Equal importance given to listening, speaking, writing, and critical reading skills."
                         }
                     }
                 },
@@ -1261,42 +672,15 @@
                     traits: {
                         pme: {
                             name: "Professional Military Education (PME)",
-                            description: "Commitment to intellectual growth in ways beneficial to the Marine Corps.",
-                            examples: {
-                                A: "No effort toward professional development",
-                                B: "Completed required PME and maintained basic knowledge",
-                                C: "Adequate PME participation with basic engagement",
-                                D: "Pursued additional education, shared knowledge with others",
-                                E: "Good educational efforts but not consistently applied",
-                                F: "Exceptional commitment to learning, intellectual leader",
-                                G: "Outstanding intellectual growth benefiting entire organization"
-                            }
+                            description: "Commitment to intellectual growth in ways beneficial to the Marine Corps. Increases the breadth and depth of warfighting and leadership aptitude."
                         },
                         decision_making: {
                             name: "Decision Making Ability",
-                            description: "Viable and timely problem solution. Contributing elements are judgment and decisiveness.",
-                            examples: {
-                                A: "Poor decisions, indecisive under pressure",
-                                B: "Made sound decisions in routine situations",
-                                C: "Adequate decision-making with occasional hesitation",
-                                D: "Excellent decisions under pressure, good judgment",
-                                E: "Good decision-making but sometimes slow to act",
-                                F: "Exceptional decision-maker, sought for complex problems",
-                                G: "Outstanding judgment inspiring confidence in all situations"
-                            }
+                            description: "Viable and timely problem solution. Contributing elements are judgment and decisiveness. Decisions reflect the balance between an optimal solution and a satisfactory, workable solution."
                         },
                         judgment: {
                             name: "Judgment",
-                            description: "The discretionary aspect of decision making. Draws on core values, knowledge, and personal experience.",
-                            examples: {
-                                A: "Poor judgment, frequent questionable decisions",
-                                B: "Demonstrated sound judgment in most situations",
-                                C: "Generally good judgment with occasional lapses",
-                                D: "Excellent judgment, opinions valued by others",
-                                E: "Good judgment but not consistently applied",
-                                F: "Exceptional judgment, sought as advisor",
-                                G: "Outstanding wisdom inspiring others' confidence"
-                            }
+                            description: "The discretionary aspect of decision making. Draws on core values, knowledge, and personal experience to make wise choices."
                         }
                     }
                 },
@@ -1305,21 +689,13 @@
                     traits: {
                         evaluations: {
                             name: "Evaluations",
-                            description: "The extent to which this officer serving as a reporting official conducted accurate, uninflated, and timely evaluations.",
-                            examples: {
-                                A: "Failed to complete evaluations, consistently late or inaccurate",
-                                B: "Completed evaluations on time with appropriate markings",
-                                C: "Adequate evaluation completion with minor issues",
-                                D: "Excellent evaluation practices, accurate and timely",
-                                E: "Good evaluation habits but occasional delays",
-                                F: "Exceptional evaluation standards, mentored others",
-                                G: "Outstanding evaluation leadership setting the example"
-                            }
+                            description: "The extent to which this officer serving as a reporting official conducted, or required others to conduct, accurate, uninflated, and timely evaluations."
                         }
                     }
                 }
             },
             
+            // Grade descriptions for evaluation levels
             gradeDescriptions: {
                 A: {
                     description: "Performance is significantly below standards and requires immediate corrective action. Does not meet basic requirements of the billet.",
@@ -1342,198 +718,35 @@
 
         // Application State
         let currentTraitIndex = 0;
-        let currentEvaluationLevel = 'B';
+        let currentEvaluationLevel = 'B'; // Start at B
         let evaluationResults = {};
         let allTraits = [];
         let isReportingSenior = false;
         let pendingEvaluation = null;
-        let editingTraitKey = null;
-        let evaluationMeta = {};
-        let voiceRecognition = null;
-
-        // Auto-save functionality
-        function autoSave() {
-            const saveData = {
-                currentTraitIndex,
-                currentEvaluationLevel,
-                evaluationResults,
-                isReportingSenior,
-                evaluationMeta,
-                timestamp: new Date().toISOString()
-            };
-            
-            try {
-                localStorage.setItem('fitrep_evaluation', JSON.stringify(saveData));
-                showAutoSaveIndicator();
-            } catch (e) {
-                console.warn('Auto-save failed:', e);
-            }
-        }
-
-        function loadSavedData() {
-            try {
-                const saved = localStorage.getItem('fitrep_evaluation');
-                if (saved) {
-                    const data = JSON.parse(saved);
-                    if (confirm('Found a previous evaluation in progress. Would you like to continue where you left off?')) {
-                        currentTraitIndex = data.currentTraitIndex || 0;
-                        currentEvaluationLevel = data.currentEvaluationLevel || 'B';
-                        evaluationResults = data.evaluationResults || {};
-                        isReportingSenior = data.isReportingSenior || false;
-                        evaluationMeta = data.evaluationMeta || {};
-                        
-                        // Restore form data
-                        if (evaluationMeta.marineName) document.getElementById('marineNameInput').value = evaluationMeta.marineName;
-                        if (evaluationMeta.fromDate) document.getElementById('fromDateInput').value = evaluationMeta.fromDate;
-                        if (evaluationMeta.toDate) document.getElementById('toDateInput').value = evaluationMeta.toDate;
-                        if (evaluationMeta.evaluatorName) document.getElementById('evaluatorNameInput').value = evaluationMeta.evaluatorName;
-                        
-                        return true;
-                    }
-                }
-            } catch (e) {
-                console.warn('Failed to load saved data:', e);
-            }
-            return false;
-        }
-
-        function showAutoSaveIndicator() {
-            const indicator = document.getElementById('autoSaveIndicator');
-            indicator.classList.add('active');
-            setTimeout(() => indicator.classList.remove('active'), 2000);
-        }
 
         function getGradeNumber(grade) {
             const gradeNumbers = { A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 0 };
             return gradeNumbers[grade];
         }
 
-        function initializeVoiceRecognition() {
-            if ('webkitSpeechRecognition' in window) {
-                voiceRecognition = new webkitSpeechRecognition();
-                voiceRecognition.continuous = true;
-                voiceRecognition.interimResults = true;
-                voiceRecognition.lang = 'en-US';
-                
-                voiceRecognition.onresult = function(event) {
-                    let finalTranscript = '';
-                    for (let i = event.resultIndex; i < event.results.length; i++) {
-                        if (event.results[i].isFinal) {
-                            finalTranscript += event.results[i][0].transcript;
-                        }
-                    }
-                    if (finalTranscript) {
-                        const textarea = document.getElementById('justificationText');
-                        textarea.value += (textarea.value ? ' ' : '') + finalTranscript;
-                        updateWordCount();
-                    }
-                };
-            }
-        }
-
-        function toggleVoiceInput() {
-            const btn = document.getElementById('voiceBtn');
-            if (!voiceRecognition) {
-                alert('Voice recognition not supported in this browser');
-                return;
-            }
-            
-            if (btn.classList.contains('active')) {
-                voiceRecognition.stop();
-                btn.classList.remove('active');
-                btn.textContent = '🎤 Voice Input';
-            } else {
-                voiceRecognition.start();
-                btn.classList.add('active');
-                btn.textContent = '🔴 Recording...';
-            }
-        }
-
-        function toggleExamples() {
-            const list = document.getElementById('examplesList');
-            list.classList.toggle('active');
-            
-            if (list.classList.contains('active') && pendingEvaluation) {
-                const trait = pendingEvaluation.trait;
-                const examples = firepData.sections[trait.sectionKey].traits[trait.traitKey].examples;
-                
-                list.innerHTML = '';
-                Object.keys(examples).forEach(grade => {
-                    const item = document.createElement('div');
-                    item.className = 'example-item';
-                    item.innerHTML = `<strong>Grade ${grade}:</strong> ${examples[grade]}`;
-                    item.onclick = () => {
-                        const textarea = document.getElementById('justificationText');
-                        textarea.value = examples[grade];
-                        updateWordCount();
-                        list.classList.remove('active');
-                    };
-                    list.appendChild(item);
-                });
-            }
-        }
-
-        function spellCheck() {
-            const textarea = document.getElementById('justificationText');
-            if ('spellcheck' in textarea) {
-                textarea.spellcheck = !textarea.spellcheck;
-                alert(textarea.spellcheck ? 'Spell check enabled' : 'Spell check disabled');
-            }
-        }
-
-        function updateWordCount() {
-            const textarea = document.getElementById('justificationText');
-            const words = textarea.value.trim().split(/\s+/).filter(word => word.length > 0);
-            const count = words.length;
-            const counter = document.getElementById('wordCount');
-            
-            counter.textContent = `${count} words`;
-            counter.className = 'word-count';
-            
-            if (count < 20) {
-                counter.classList.add('error');
-            } else if (count < 30) {
-                counter.classList.add('warning');
-            }
-        }
-
         function startEvaluation() {
-            // Validate required fields
-            const marineName = document.getElementById('marineNameInput').value.trim();
-            const fromDate = document.getElementById('fromDateInput').value;
-            const toDate = document.getElementById('toDateInput').value;
             const selection = document.getElementById('reportingSeniorSelect').value;
-            const evaluatorName = document.getElementById('evaluatorNameInput').value.trim();
-            
-            if (!marineName || !fromDate || !toDate || !selection || !evaluatorName) {
-                alert('Please complete all required fields before beginning the evaluation.');
+            if (!selection) {
+                alert('Please select whether this person is a Reporting Senior');
                 return;
             }
-            
-            // Store evaluation metadata
-            evaluationMeta = {
-                marineName,
-                fromDate,
-                toDate,
-                evaluatorName,
-                reviewerName: '',
-                reviewerComments: ''
-            };
             
             isReportingSenior = (selection === 'yes');
             initializeTraits();
             
             document.getElementById('setupCard').style.display = 'none';
-            document.getElementById('howItWorksCard').style.display = 'none';
-            document.getElementById('dataWarning').style.display = 'none';
-            
             updateProgress();
             renderCurrentTrait();
-            autoSave();
         }
 
         function initializeTraits() {
             allTraits = [];
+            // Add all traits from sections D-G
             ['D', 'E', 'F', 'G'].forEach(sectionKey => {
                 const section = firepData.sections[sectionKey];
                 Object.keys(section.traits).forEach(traitKey => {
@@ -1546,6 +759,7 @@
                 });
             });
             
+            // Add Section H only if Reporting Senior
             if (isReportingSenior) {
                 const sectionH = firepData.sections.H;
                 Object.keys(sectionH.traits).forEach(traitKey => {
@@ -1566,9 +780,9 @@
             if (currentTraitIndex < allTraits.length) {
                 const currentTrait = allTraits[currentTraitIndex];
                 document.getElementById('progressText').textContent = 
-                    `${currentTrait.sectionTitle}: ${currentTrait.name} (${currentTraitIndex + 1} of ${allTraits.length})`;
+                    `Section ${currentTrait.sectionKey} - ${currentTrait.sectionTitle} (${currentTraitIndex + 1} of ${allTraits.length} traits)`;
             } else {
-                document.getElementById('progressText').textContent = 'Ready for Review';
+                document.getElementById('progressText').textContent = 'Evaluation Complete';
             }
         }
 
@@ -1577,12 +791,14 @@
             
             if (currentTraitIndex >= allTraits.length) {
                 container.innerHTML = '';
-                showReviewScreen();
+                showSummary();
                 return;
             }
 
             const trait = allTraits[currentTraitIndex];
             const gradeInfo = firepData.gradeDescriptions[currentEvaluationLevel];
+
+            // Determine button states - only disable "Does Not Meet" at A
             const isAtA = currentEvaluationLevel === 'A';
 
             container.innerHTML = `
@@ -1619,17 +835,21 @@
             
             switch(action) {
                 case 'does-not-meet':
+                    // Immediately select previous grade
                     if (currentEvaluationLevel === 'B') selectedGrade = 'A';
                     else if (currentEvaluationLevel === 'D') selectedGrade = 'C';
                     else if (currentEvaluationLevel === 'F') selectedGrade = 'E';
+                    
                     finalizeTrait(selectedGrade);
                     break;
                     
                 case 'meets':
+                    // Accept current evaluation level
                     finalizeTrait(currentEvaluationLevel);
                     break;
                     
                 case 'surpasses':
+                    // Move to next descriptive level
                     if (currentEvaluationLevel === 'B') {
                         currentEvaluationLevel = 'D';
                         renderCurrentTrait();
@@ -1637,6 +857,7 @@
                         currentEvaluationLevel = 'F';
                         renderCurrentTrait();
                     } else if (currentEvaluationLevel === 'F') {
+                        // At highest level, select G
                         finalizeTrait('G');
                     }
                     break;
@@ -1663,13 +884,8 @@
                 `${trait.sectionTitle}: ${trait.name}`;
             document.getElementById('justificationGrade').textContent = 
                 `Grade: ${pendingEvaluation.grade} (Value: ${pendingEvaluation.gradeNumber})`;
+            document.getElementById('justificationText').value = '';
             
-            // Pre-fill if editing existing
-            const existingKey = `${trait.sectionKey}_${trait.traitKey}`;
-            const existing = evaluationResults[existingKey];
-            document.getElementById('justificationText').value = existing ? existing.justification : '';
-            
-            updateWordCount();
             modal.classList.add('active');
             document.getElementById('justificationText').focus();
         }
@@ -1681,17 +897,11 @@
                 alert('Please provide justification for this marking before continuing.');
                 return;
             }
-            
-            if (justificationText.split(/\s+/).length < 20) {
-                if (!confirm('Your justification is quite short (less than 20 words). Are you sure you want to continue?')) {
-                    return;
-                }
-            }
 
             const trait = pendingEvaluation.trait;
-            const traitKey = `${trait.sectionKey}_${trait.traitKey}`;
             
-            evaluationResults[traitKey] = {
+            // Save the evaluation result
+            evaluationResults[`${trait.sectionKey}_${trait.traitKey}`] = {
                 section: trait.sectionTitle,
                 trait: trait.name,
                 grade: pendingEvaluation.grade,
@@ -1699,188 +909,19 @@
                 justification: justificationText
             };
             
+            // Close modal and move to next trait
             document.getElementById('justificationModal').classList.remove('active');
             pendingEvaluation = null;
             
-            if (editingTraitKey) {
-                editingTraitKey = null;
-                showReviewScreen();
-            } else {
-                currentTraitIndex++;
-                currentEvaluationLevel = 'B';
-                updateProgress();
-                renderCurrentTrait();
-            }
-            
-            autoSave();
+            currentTraitIndex++;
+            currentEvaluationLevel = 'B'; // Reset to B for next trait
+            updateProgress();
+            renderCurrentTrait();
         }
 
         function cancelJustification() {
             document.getElementById('justificationModal').classList.remove('active');
             pendingEvaluation = null;
-            editingTraitKey = null;
-        }
-
-        function showReviewScreen() {
-            document.getElementById('evaluationContainer').innerHTML = '';
-            document.getElementById('reviewCard').classList.add('active');
-            
-            generateStatistics();
-            validateEvaluation();
-            renderReviewGrid();
-        }
-
-        function generateStatistics() {
-            const grades = Object.values(evaluationResults).map(r => r.grade);
-            const distribution = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0, G: 0 };
-            grades.forEach(grade => distribution[grade]++);
-            
-            const total = grades.length;
-            const average = grades.reduce((sum, grade) => sum + getGradeNumber(grade), 0) / total;
-            const highGrades = grades.filter(g => ['F', 'G'].includes(g)).length;
-            const lowGrades = grades.filter(g => ['A', 'B', 'C'].includes(g)).length;
-            
-            const statsGrid = document.getElementById('statsGrid');
-            statsGrid.innerHTML = `
-                <div class="stat-item">
-                    <div class="stat-value">${average.toFixed(2)}</div>
-                    <div class="stat-label">Average</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">${highGrades}</div>
-                    <div class="stat-label">F/G Grades</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">${lowGrades}</div>
-                    <div class="stat-label">A/B/C Grades</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">${total}</div>
-                    <div class="stat-label">Total Traits</div>
-                </div>
-            `;
-            
-            // Distribution chart
-            const chart = document.getElementById('distributionChart');
-            chart.innerHTML = '';
-            const colors = { A: '#f44336', B: '#ff9800', C: '#ffc107', D: '#2196f3', E: '#4caf50', F: '#8bc34a', G: '#cddc39' };
-            
-            Object.keys(distribution).forEach(grade => {
-                if (distribution[grade] > 0) {
-                    const segment = document.createElement('div');
-                    segment.className = 'distribution-segment';
-                    segment.style.width = `${(distribution[grade] / total) * 100}%`;
-                    segment.style.backgroundColor = colors[grade];
-                    segment.title = `Grade ${grade}: ${distribution[grade]} (${((distribution[grade] / total) * 100).toFixed(1)}%)`;
-                    chart.appendChild(segment);
-                }
-            });
-        }
-
-        function validateEvaluation() {
-            const warnings = [];
-            const grades = Object.values(evaluationResults).map(r => r.grade);
-            const total = grades.length;
-            
-            // Check for grade inflation
-            const highGrades = grades.filter(g => ['F', 'G'].includes(g)).length;
-            if (highGrades / total > 0.3) {
-                warnings.push({
-                    type: 'warning',
-                    message: `High percentage of F/G grades (${((highGrades / total) * 100).toFixed(1)}%). Ensure justifications support exceptional performance.`
-                });
-            }
-            
-            // Check for low justification quality
-            const shortJustifications = Object.values(evaluationResults).filter(r => 
-                r.justification.split(/\s+/).length < 30
-            ).length;
-            
-            if (shortJustifications > 0) {
-                warnings.push({
-                    type: 'warning',
-                    message: `${shortJustifications} justification(s) are shorter than recommended. Consider adding more specific examples.`
-                });
-            }
-            
-            // Check for missing reviewer info
-            const reviewerName = document.getElementById('reviewerNameInput').value.trim();
-            const concur = document.getElementById('concurCheckbox').checked;
-            
-            if (!reviewerName || !concur) {
-                warnings.push({
-                    type: 'error',
-                    message: 'Supervisor review section must be completed before finalizing.'
-                });
-            }
-            
-            const warningsContainer = document.getElementById('validationWarnings');
-            warningsContainer.innerHTML = warnings.map(w => 
-                `<div class="warning-item ${w.type}">${w.message}</div>`
-            ).join('');
-        }
-
-        function renderReviewGrid() {
-            const grid = document.getElementById('reviewGrid');
-            grid.innerHTML = '';
-            
-            Object.keys(evaluationResults).forEach(key => {
-                const result = evaluationResults[key];
-                const item = document.createElement('div');
-                item.className = 'review-item';
-                item.innerHTML = `
-                    <div class="review-trait">${result.section}: ${result.trait}</div>
-                    <div class="review-grade">Grade: ${result.grade} (${result.gradeNumber})</div>
-                    <div class="review-justification">${result.justification}</div>
-                `;
-                item.onclick = () => editTrait(key);
-                grid.appendChild(item);
-            });
-        }
-
-        function editTrait(traitKey) {
-            const [sectionKey, traitKeyPart] = traitKey.split('_');
-            const trait = allTraits.find(t => t.sectionKey === sectionKey && t.traitKey === traitKeyPart);
-            const result = evaluationResults[traitKey];
-            
-            editingTraitKey = traitKey;
-            pendingEvaluation = {
-                trait: trait,
-                grade: result.grade,
-                gradeNumber: result.gradeNumber
-            };
-            
-            showJustificationModal();
-        }
-
-        function backToEvaluation() {
-            document.getElementById('reviewCard').classList.remove('active');
-            updateProgress();
-            renderCurrentTrait();
-        }
-
-        function finalizeEvaluation() {
-            // Validate supervisor section
-            const reviewerName = document.getElementById('reviewerNameInput').value.trim();
-            const reviewerComments = document.getElementById('reviewerCommentsInput').value.trim();
-            const concur = document.getElementById('concurCheckbox').checked;
-            
-            if (!reviewerName || !concur) {
-                alert('Please complete the supervisor review section before finalizing.');
-                return;
-            }
-            
-            // Store supervisor data
-            evaluationMeta.reviewerName = reviewerName;
-            evaluationMeta.reviewerComments = reviewerComments;
-            evaluationMeta.concur = concur;
-            evaluationMeta.finalizedDate = new Date().toISOString();
-            
-            document.getElementById('reviewCard').classList.remove('active');
-            showSummary();
-            
-            // Clear auto-save data
-            localStorage.removeItem('fitrep_evaluation');
         }
 
         function calculateFitrepAverage() {
@@ -1888,7 +929,7 @@
             let observedAttributes = 0;
             
             Object.values(evaluationResults).forEach(result => {
-                if (result.gradeNumber > 0) {
+                if (result.gradeNumber > 0) { // Exclude H (not observed)
                     totalPoints += result.gradeNumber;
                     observedAttributes++;
                 }
@@ -1904,30 +945,18 @@
             document.getElementById('fitrepAverage').textContent = 
                 `FITREP Average: ${fitrepAverage}`;
             
-            // Show evaluation metadata
-            const metaDiv = document.getElementById('evaluationMeta');
-            metaDiv.innerHTML = `
-                <strong>Marine:</strong> ${evaluationMeta.marineName} | 
-                <strong>Period:</strong> ${evaluationMeta.fromDate} to ${evaluationMeta.toDate} | 
-                <strong>Evaluator:</strong> ${evaluationMeta.evaluatorName}<br>
-                <strong>Reviewed by:</strong> ${evaluationMeta.reviewerName} | 
-                <strong>Finalized:</strong> ${new Date(evaluationMeta.finalizedDate).toLocaleDateString()}
-            `;
-            
-            // Render final summary grid
             const summaryGrid = document.getElementById('summaryGrid');
             summaryGrid.innerHTML = '';
             
             Object.keys(evaluationResults).forEach(key => {
                 const result = evaluationResults[key];
-                const item = document.createElement('div');
-                item.className = 'review-item';
-                item.innerHTML = `
-                    <div class="review-trait">${result.section}: ${result.trait}</div>
-                    <div class="review-grade">Grade: ${result.grade} (${result.gradeNumber})</div>
-                    <div class="review-justification">${result.justification}</div>
+                summaryGrid.innerHTML += `
+                    <div class="summary-item">
+                        <div class="summary-trait">${result.section}: ${result.trait}</div>
+                        <div class="summary-grade">Grade: ${result.grade} (${result.gradeNumber})</div>
+                        <div class="summary-justification">${result.justification}</div>
+                    </div>
                 `;
-                summaryGrid.appendChild(item);
             });
         }
 
@@ -1935,10 +964,6 @@
             const fitrepAverage = calculateFitrepAverage();
             let exportText = "USMC FITREP Evaluation Results\n";
             exportText += "================================\n\n";
-            exportText += `Marine: ${evaluationMeta.marineName}\n`;
-            exportText += `Period: ${evaluationMeta.fromDate} to ${evaluationMeta.toDate}\n`;
-            exportText += `Evaluator: ${evaluationMeta.evaluatorName}\n`;
-            exportText += `Reviewed by: ${evaluationMeta.reviewerName}\n\n`;
             exportText += `FITREP Average: ${fitrepAverage}\n\n`;
             
             Object.keys(evaluationResults).forEach(key => {
@@ -1948,73 +973,33 @@
                 exportText += `Justification: ${result.justification}\n\n`;
             });
             
-            if (evaluationMeta.reviewerComments) {
-                exportText += `Reviewer Comments: ${evaluationMeta.reviewerComments}\n`;
-            }
-            
             navigator.clipboard.writeText(exportText).then(() => {
                 alert('Results copied to clipboard!');
             });
         }
 
-        function exportToPDF() {
-            // This would require a PDF library in a real implementation
-            alert('PDF export feature would be implemented with a PDF generation library like jsPDF');
-        }
-
         function resetEvaluation() {
             if (confirm('Are you sure you want to start over? All progress will be lost.')) {
-                localStorage.removeItem('fitrep_evaluation');
-                location.reload();
+                currentTraitIndex = 0;
+                currentEvaluationLevel = 'B';
+                evaluationResults = {};
+                allTraits = [];
+                isReportingSenior = false;
+                pendingEvaluation = null;
+                
+                document.getElementById('summaryCard').classList.remove('active');
+                document.getElementById('justificationModal').classList.remove('active');
+                document.getElementById('setupCard').style.display = 'block';
+                document.getElementById('reportingSeniorSelect').value = '';
+                document.getElementById('progressText').textContent = 'Setup - Determine Role';
+                document.getElementById('progressFill').style.width = '0%';
             }
         }
 
-        function openHelpModal() {
-            document.getElementById('helpModal').classList.add('active');
-        }
-
-        function closeHelpModal() {
-            document.getElementById('helpModal').classList.remove('active');
-        }
-
-        // Initialize application
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeVoiceRecognition();
-            
-            // Auto-save on form changes
-            document.addEventListener('input', autoSave);
-            
-            // Word count tracking
-            document.getElementById('justificationText').addEventListener('input', updateWordCount);
-            
-            // Close modal when clicking outside
-            document.getElementById('justificationModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    cancelJustification();
-                }
-            });
-            
-            // Close help modal when clicking outside
-            document.getElementById('helpModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeHelpModal();
-                }
-            });
-            
-            // Close examples when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.examples-dropdown')) {
-                    document.getElementById('examplesList').classList.remove('active');
-                }
-            });
-            
-            // Load saved data if available
-            if (!loadSavedData()) {
-                // Set default dates
-                const today = new Date();
-                const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-                document.getElementById('fromDateInput').value = oneYearAgo.toISOString().split('T')[0];
-                document.getElementById('toDateInput').value = today.toISOString().split('T')[0];
+        // Close modal when clicking outside
+        document.getElementById('justificationModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cancelJustification();
             }
         });
     </script>
