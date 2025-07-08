@@ -146,6 +146,11 @@
                 <!-- Grade groups will be populated by JavaScript -->
             </div>
             
+            <!-- Validation Warnings -->
+            <div class="validation-panel" id="validationWarnings">
+                <!-- Validation results will be populated by JavaScript -->
+            </div>
+            
             <div style="text-align: center; margin: 30px 0;">
                 <div class="generation-options">
                     <button class="generation-btn primary" onclick="generateSectionIComment()">🔄 Generate Section I Comment</button>
@@ -165,7 +170,7 @@
                 <div class="word-count-display" id="sectionIWordCount">0 words (Recommended: 200-400 words)</div>
             </div>
             
-            <div style="text-align: center; margin-top: 30px;">
+            <div class="button-row">
                 <button class="btn btn-secondary" onclick="skipSectionI()">Skip Section I</button>
                 <button class="btn btn-meets" onclick="finalizeSectionI()">Continue to Summary</button>
             </div>
@@ -186,7 +191,7 @@
                 <div id="selectedCommentsForm"></div>
             </div>
             
-            <div style="text-align: center; margin-top: 30px;">
+            <div class="button-row">
                 <button class="btn btn-secondary" onclick="skipDirectedComments()">Skip Directed Comments</button>
                 <button class="btn btn-meets" onclick="finalizeDirectedComments()">Continue to Summary</button>
             </div>
@@ -199,9 +204,11 @@
             <div id="evaluationMeta" style="text-align: center; margin: 20px 0; color: #666;"></div>
             <div class="summary-grid" id="summaryGrid"></div>
             <div class="export-section">
-                <button class="btn btn-export" onclick="window.print()">Print Summary</button>
-                <button class="btn btn-export" onclick="exportToClipboard()">Copy to Clipboard</button>
-                <button class="btn btn-export" onclick="resetEvaluation()">Start Over</button>
+                <div class="button-row">
+                    <button class="btn btn-export" onclick="window.print()">Print Summary</button>
+                    <button class="btn btn-export" onclick="exportToClipboard()">Copy to Clipboard</button>
+                    <button class="btn btn-export" onclick="resetEvaluation()">Start Over</button>
+                </div>
             </div>
         </div>
     </div>
@@ -314,6 +321,7 @@
     <script src="js/data.js" onerror="console.error('Failed to load data.js')"></script>
     <script src="js/voice.js" onerror="console.error('Failed to load voice.js')"></script>
     <script src="js/utils.js" onerror="console.error('Failed to load utils.js')"></script>
+    <script src="js/validation.js" onerror="console.error('Failed to load validation.js')"></script>
     <script src="js/sectionI.js" onerror="console.error('Failed to load sectionI.js')"></script>
     <script src="js/directedComments.js" onerror="console.error('Failed to load directedComments.js')"></script>
     <script src="js/evaluation.js" onerror="console.error('Failed to load evaluation.js')"></script>

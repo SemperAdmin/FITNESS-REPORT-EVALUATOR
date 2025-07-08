@@ -140,16 +140,22 @@ function extractKeyAccomplishments() {
     Object.values(evaluationResults).forEach(result => {
         if (result.gradeNumber >= 4) { // D grade or higher
             const justification = result.justification;
-            // Extract meaningful sentences
+            // Extract meaningful sentences with better patterns
             const sentences = justification.split(/[.!?]+/);
             const meaningful = sentences.find(s => 
-                s.trim().length > 15 && 
+                s.trim().length > 20 && 
                 (s.toLowerCase().includes('led') || 
                  s.toLowerCase().includes('achieved') ||
                  s.toLowerCase().includes('improved') ||
                  s.toLowerCase().includes('exceeded') ||
                  s.toLowerCase().includes('completed') ||
-                 s.toLowerCase().includes('managed'))
+                 s.toLowerCase().includes('managed') ||
+                 s.toLowerCase().includes('developed') ||
+                 s.toLowerCase().includes('implemented') ||
+                 s.toLowerCase().includes('organized') ||
+                 s.toLowerCase().includes('trained') ||
+                 s.toLowerCase().includes('supervised') ||
+                 s.toLowerCase().includes('coordinated'))
             );
             
             if (meaningful) {
@@ -157,58 +163,156 @@ function extractKeyAccomplishments() {
                     section: result.section,
                     trait: result.trait,
                     grade: result.grade,
-                    accomplishment: meaningful.trim()
+                    gradeNumber: result.gradeNumber,
+                    accomplishment: meaningful.trim(),
+                    sectionKey: getTraitSectionKey(result.section)
                 });
             }
         }
     });
     
-    return accomplishments;
+    // Sort by grade (highest first) and return top accomplishments
+    return accomplishments.sort((a, b) => b.gradeNumber - a.gradeNumber);
+}
+
+function getTraitSectionKey(sectionTitle) {
+    const sectionMap = {
+        'Mission Accomplishment': 'mission',
+        'Individual Character': 'character',
+        'Leadership': 'leadership',
+        'Intellect and Wisdom': 'intellect',
+        'Fulfillment of Evaluation Responsibilities': 'evaluation'
+    };
+    return sectionMap[sectionTitle] || 'general';
+}
+
+function analyzePerformancePatterns() {
+    const results = Object.values(evaluationResults);
+    const patterns = {
+        strongestAreas: [],
+        developmentAreas: [],
+        consistentPerformer: false,
+        standoutTraits: [],
+        leadershipFocus: false,
+        technicalExcellence: false
+    };
+    
+    // Identify strongest performing areas
+    const sectionAverages = {};
+    const sectionCounts = {};
+    
+    results.forEach(result => {
+        const section = getTraitSectionKey(result.section);
+        if (!sectionAverages[section]) {
+            sectionAverages[section] = 0;
+            sectionCounts[section] = 0;
+        }
+        sectionAverages[section] += result.gradeNumber;
+        sectionCounts[section]++;
+    });
+    
+    // Calculate section averages
+    Object.keys(sectionAverages).forEach(section => {
+        sectionAverages[section] = sectionAverages[section] / sectionCounts[section];
+    });
+    
+    // Find strongest areas (above 4.5 average)
+    patterns.strongestAreas = Object.keys(sectionAverages)
+        .filter(section => sectionAverages[section] >= 4.5)
+        .sort((a, b) => sectionAverages[b] - sectionAverages[a]);
+    
+    // Find development areas (below 3.5 average)
+    patterns.developmentAreas = Object.keys(sectionAverages)
+        .filter(section => sectionAverages[section] <= 3.5);
+    
+    // Check for consistency (standard deviation < 1.0)
+    const allGrades = results.map(r => r.gradeNumber);
+    const avg = allGrades.reduce((sum, grade) => sum + grade, 0) / allGrades.length;
+    const variance = allGrades.reduce((sum, grade) => sum + Math.pow(grade - avg, 2), 0) / allGrades.length;
+    patterns.consistentPerformer = Math.sqrt(variance) < 1.0;
+    
+    // Identify standout traits (grade 6+)
+    patterns.standoutTraits = results
+        .filter(r => r.gradeNumber >= 6)
+        .map(r => ({ trait: r.trait, grade: r.grade }));
+    
+    // Check for leadership focus
+    patterns.leadershipFocus = sectionAverages.leadership >= 4.5;
+    
+    // Check for technical excellence
+    patterns.technicalExcellence = sectionAverages.mission >= 5.0;
+    
+    return patterns;
 }
 
 function generateSectionIComment() {
     const analysis = analyzeTraitEvaluations();
     const accomplishments = extractKeyAccomplishments();
+    const patterns = analyzePerformancePatterns();
     const templates = sectionITemplates[analysis.tier];
     
     updateAnalysisDisplay(analysis);
     
     let comment = '';
     
-    // Opening statement
-    comment += getRandomTemplate(templates.openings) + ' ';
+    // Opening statement - enhanced based on patterns
+    let opening = getRandomTemplate(templates.openings);
+    if (patterns.consistentPerformer && analysis.tier === 'top') {
+        opening = "An immensely talented and effective Marine who operates at a level beyond the grasp of peers.";
+    } else if (patterns.technicalExcellence) {
+        opening = "A highly motivated and technically proficient Marine whose performance significantly exceeds expectations.";
+    }
+    comment += opening + ' ';
     
-    // Performance section with specific examples
-    comment += getRandomTemplate(templates.performance) + ' ';
-    if (accomplishments.length > 0 && currentGenerationStyle !== 'concise') {
-        const topAccomplishment = accomplishments[0];
-        comment += `Specifically, ${topAccomplishment.accomplishment.toLowerCase()}. `;
+    // Performance section with specific accomplishments
+    if (patterns.strongestAreas.includes('mission') && accomplishments.length > 0) {
+        const missionAccomplishments = accomplishments.filter(a => a.sectionKey === 'mission');
+        if (missionAccomplishments.length > 0) {
+            comment += `MRO ${missionAccomplishments[0].accomplishment.toLowerCase()}. `;
+        } else {
+            comment += getRandomTemplate(templates.performance) + ' ';
+        }
+    } else {
+        comment += getRandomTemplate(templates.performance) + ' ';
     }
     
-    // Leadership section
-    if (currentGenerationStyle === 'comprehensive' || analysis.tier === 'top') {
-        comment += getRandomTemplate(templates.leadership) + ' ';
-        
-        // Add leadership example if available
-        const leadershipAccomplishments = accomplishments.filter(a => a.section === 'Leadership');
+    // Leadership section - enhanced based on leadership performance
+    if (patterns.leadershipFocus || currentGenerationStyle === 'comprehensive' || analysis.tier === 'top') {
+        const leadershipAccomplishments = accomplishments.filter(a => a.sectionKey === 'leadership');
         if (leadershipAccomplishments.length > 0 && currentGenerationStyle !== 'concise') {
             comment += `${leadershipAccomplishments[0].accomplishment}. `;
+        } else {
+            comment += getRandomTemplate(templates.leadership) + ' ';
         }
     }
     
-    // Character section
-    comment += getRandomTemplate(templates.character) + ' ';
-    
-    // Add specific accomplishments for comprehensive style
-    if (currentGenerationStyle === 'comprehensive' && accomplishments.length > 1) {
-        comment += 'Notable achievements include ';
-        const topAccomplishments = accomplishments.slice(0, 2);
-        const achievementTexts = topAccomplishments.map(a => a.accomplishment.toLowerCase());
-        comment += achievementTexts.join(' and ') + '. ';
+    // Character section - adapt based on character grades
+    if (patterns.strongestAreas.includes('character')) {
+        comment += "Demonstrates impeccable moral character and matchless ability among peers to lead and inspire Marines and Sailors. ";
+    } else {
+        comment += getRandomTemplate(templates.character) + ' ';
     }
     
-    // Generate appropriate promotion recommendation based on performance tier
-    const promotionEndorsement = generatePromotionEndorsement(analysis.tier);
+    // Add specific standout traits for comprehensive style
+    if (currentGenerationStyle === 'comprehensive' && patterns.standoutTraits.length > 0) {
+        const traitText = patterns.standoutTraits.map(t => `${t.trait.toLowerCase()} (${t.grade})`).slice(0, 2).join(' and ');
+        comment += `Particularly noteworthy performance in ${traitText}. `;
+    }
+    
+    // Add multiple accomplishments for comprehensive comments
+    if (currentGenerationStyle === 'comprehensive' && accomplishments.length > 1) {
+        const topAccomplishments = accomplishments.slice(0, 3);
+        const achievementTexts = topAccomplishments.map(a => a.accomplishment.toLowerCase());
+        
+        if (achievementTexts.length === 2) {
+            comment += `Key accomplishments include: ${achievementTexts[0]} and ${achievementTexts[1]}. `;
+        } else if (achievementTexts.length >= 3) {
+            comment += `Key accomplishments include: ${achievementTexts[0]}, ${achievementTexts[1]}, and ${achievementTexts[2]}. `;
+        }
+    }
+    
+    // Generate promotion recommendation with enhanced logic
+    const promotionEndorsement = generateEnhancedPromotionEndorsement(analysis.tier, patterns);
     comment += promotionEndorsement;
     
     // Clean up the comment
@@ -220,32 +324,55 @@ function generateSectionIComment() {
     updateSectionIWordCount();
 }
 
-function generatePromotionEndorsement(performanceTier) {
+function generateEnhancedPromotionEndorsement(performanceTier, patterns) {
     let promotionStatement = '';
     
-    // Generate promotion recommendation based on performance tier
+    // Generate promotion recommendation based on performance tier and patterns
     if (performanceTier === 'top') {
-        const topStatements = [
-            "An absolute must for promotion.",
-            "My highest recommendation for promotion.",
-            "Highly recommended for promotion.",
-            "Promote at first opportunity."
-        ];
-        promotionStatement = getRandomFromArray(topStatements);
+        if (patterns.technicalExcellence && patterns.leadershipFocus) {
+            promotionStatement = "An absolute must for promotion.";
+        } else if (patterns.standoutTraits.length >= 3) {
+            promotionStatement = "My highest recommendation for promotion.";
+        } else {
+            const topStatements = [
+                "Highly recommended for promotion.",
+                "Promote at first opportunity.",
+                "An absolute must for promotion."
+            ];
+            promotionStatement = getRandomFromArray(topStatements);
+        }
+        
+        // Add additional endorsements for exceptional performers
+        if (patterns.consistentPerformer && patterns.strongestAreas.length >= 3) {
+            promotionStatement += " Highly recommended for any officer commissioning program.";
+        }
+        
     } else if (performanceTier === 'middle') {
-        const middleStatements = [
-            "Highly recommended for promotion.",
-            "Strongly recommended for promotion.",
-            "Promote at first opportunity."
-        ];
-        promotionStatement = getRandomFromArray(middleStatements);
+        if (patterns.strongestAreas.length >= 2) {
+            const middleStatements = [
+                "Highly recommended for promotion and billets of increased responsibility.",
+                "Strongly recommended for promotion."
+            ];
+            promotionStatement = getRandomFromArray(middleStatements);
+        } else {
+            const standardStatements = [
+                "Highly recommended for promotion.",
+                "Promote at first opportunity."
+            ];
+            promotionStatement = getRandomFromArray(standardStatements);
+        }
+        
     } else if (performanceTier === 'developing') {
-        const developingStatements = [
-            "Recommended for promotion.",
-            "Promote with peers.",
-            "Promote."
-        ];
-        promotionStatement = getRandomFromArray(developingStatements);
+        if (patterns.developmentAreas.length > 2) {
+            promotionStatement = "Promote.";
+        } else {
+            const developingStatements = [
+                "Recommended for promotion.",
+                "Promote with peers.",
+                "Promote."
+            ];
+            promotionStatement = getRandomFromArray(developingStatements);
+        }
     }
     
     return promotionStatement;
@@ -287,6 +414,9 @@ function updateAnalysisDisplay(analysis) {
     
     // Update the detailed grade groups display
     updateGradeGroupsDisplay(analysis);
+    
+    // Display validation warnings
+    displayValidationWarnings();
 }
 
 function updateGradeGroupsDisplay(analysis) {

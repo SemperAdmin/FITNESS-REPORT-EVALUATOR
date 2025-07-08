@@ -7,6 +7,95 @@ let isReportingSenior = false;
 let pendingEvaluation = null;
 let evaluationMeta = {};
 
+// Helper Functions (defined first)
+function getSectionProgress(sectionKey) {
+    const sectionTraits = allTraits.filter(trait => trait.sectionKey === sectionKey);
+    const completedInSection = sectionTraits.filter((trait, index) => {
+        const traitIndex = allTraits.findIndex(t => t.sectionKey === trait.sectionKey && t.traitKey === trait.traitKey);
+        return traitIndex < currentTraitIndex;
+    }).length;
+    
+    const currentInSection = sectionTraits.findIndex(trait => {
+        const traitIndex = allTraits.findIndex(t => t.sectionKey === trait.sectionKey && t.traitKey === trait.traitKey);
+        return traitIndex === currentTraitIndex;
+    }) + 1;
+    
+    return {
+        current: currentInSection,
+        total: sectionTraits.length,
+        completed: completedInSection
+    };
+}
+
+function getSectionInfo(sectionKey) {
+    const sectionDetails = {
+        'D': {
+            description: "Mission Accomplishment evaluates how effectively the Marine performs their primary duties and responsibilities.",
+            importance: "This section focuses on technical competence and job performance - the foundation of military effectiveness."
+        },
+        'E': {
+            description: "Individual Character assesses the Marine's personal integrity, moral courage, and resilience under pressure.",
+            importance: "Character traits are fundamental to military service and leadership at every level."
+        },
+        'F': {
+            description: "Leadership evaluates the Marine's ability to lead, develop, and care for subordinates while setting the example.",
+            importance: "Leadership capabilities are essential for career progression and unit effectiveness."
+        },
+        'G': {
+            description: "Intellect and Wisdom measures the Marine's decision-making ability, judgment, and commitment to professional development.",
+            importance: "Intellectual growth and sound judgment are critical for increased responsibility and complex missions."
+        },
+        'H': {
+            description: "Evaluation Responsibilities assesses how well this Marine conducts performance evaluations of their subordinates.",
+            importance: "Fair and accurate evaluation of others is a key leadership responsibility for senior Marines."
+        }
+    };
+    
+    return sectionDetails[sectionKey] || { description: "", importance: "" };
+}
+
+function getGradeMeaning(grade) {
+    const meanings = {
+        'A': "Significantly below standards",
+        'B': "Meets requirements and expectations", 
+        'C': "Below average but acceptable",
+        'D': "Consistently produces quality results",
+        'E': "Above average performance",
+        'F': "Results far surpass expectations",
+        'G': "Exceptional, setting new standards"
+    };
+    
+    return meanings[grade] || "";
+}
+
+function getRemainingsSections() {
+    const remainingTraits = allTraits.slice(currentTraitIndex + 1);
+    const sectionsLeft = [...new Set(remainingTraits.map(t => t.sectionTitle))];
+    
+    if (sectionsLeft.length === 0) {
+        return "Final trait in evaluation";
+    } else if (sectionsLeft.length === 1) {
+        return `Next: ${sectionsLeft[0]}`;
+    } else {
+        return `Remaining: ${sectionsLeft.slice(0, 2).join(', ')}${sectionsLeft.length > 2 ? ` +${sectionsLeft.length - 2} more` : ''}`;
+    }
+}
+
+function updateProgress() {
+    const progress = (currentTraitIndex / allTraits.length) * 100;
+    document.getElementById('progressFill').style.width = progress + '%';
+    
+    if (currentTraitIndex < allTraits.length) {
+        const currentTrait = allTraits[currentTraitIndex];
+        const sectionProgress = getSectionProgress(currentTrait.sectionKey);
+        document.getElementById('progressText').textContent = 
+            `${currentTrait.sectionTitle}: ${currentTrait.name} (${sectionProgress.current} of ${sectionProgress.total} in section)`;
+    } else {
+        document.getElementById('progressText').textContent = 'Directed Comments Selection';
+    }
+}
+
+// Main Functions
 function startEvaluation() {
     const marineName = document.getElementById('marineNameInput').value.trim();
     const fromDate = document.getElementById('fromDateInput').value;
@@ -76,30 +165,61 @@ function renderCurrentTrait() {
     const trait = allTraits[currentTraitIndex];
     const gradeInfo = firepData.gradeDescriptions[currentEvaluationLevel];
     const isAtA = currentEvaluationLevel === 'A';
+    const sectionProgress = getSectionProgress(trait.sectionKey);
+    const sectionInfo = getSectionInfo(trait.sectionKey);
 
     container.innerHTML = `
         <div class="evaluation-card active">
-            <div class="trait-header">
-                <div class="trait-title">${trait.sectionTitle}</div>
-                <div class="trait-subtitle">${trait.name}</div>
-                <div class="trait-description">${trait.description}</div>
+            <div class="section-context">
+                <div class="section-header">
+                    <div class="section-title">${trait.sectionTitle}</div>
+                    <div class="section-progress">
+                        <span class="section-progress-text">Trait ${sectionProgress.current} of ${sectionProgress.total}</span>
+                        <div class="section-progress-bar">
+                            <div class="section-progress-fill" style="width: ${(sectionProgress.completed / sectionProgress.total) * 100}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-description">${sectionInfo.description}</div>
+                <div class="section-importance">${sectionInfo.importance}</div>
+            </div>
+            
+            <div class="trait-context">
+                <div class="trait-header">
+                    <div class="trait-subtitle">${trait.name}</div>
+                    <div class="trait-description">${trait.description}</div>
+                </div>
             </div>
             
             <div class="grade-display ${gradeInfo.class}">
                 <div class="grade-description">${gradeInfo.description}</div>
             </div>
             
+            <div class="evaluation-guidance">
+                <div class="guidance-question">Does this Marine's performance in <strong>${trait.name}</strong> meet this standard?</div>
+            </div>
+            
             <div class="action-buttons">
                 <button class="btn btn-does-not-meet" onclick="handleGradeAction('does-not-meet')" 
                         ${isAtA ? 'disabled' : ''}>
-                    Does Not Meet
+                    <span class="button-label">Does Not Meet</span>
+                    <span class="button-description">Select lower standard</span>
                 </button>
                 <button class="btn btn-meets" onclick="handleGradeAction('meets')">
-                    Meets
+                    <span class="button-label">Meets</span>
+                    <span class="button-description">Assign this grade</span>
                 </button>
                 <button class="btn btn-surpasses" onclick="handleGradeAction('surpasses')">
-                    Surpasses
+                    <span class="button-label">Surpasses</span>
+                    <span class="button-description">Try higher standard</span>
                 </button>
+            </div>
+            
+            <div class="navigation-helper">
+                <div class="overall-progress">
+                    <span>Overall Progress: ${currentTraitIndex + 1} of ${allTraits.length} traits</span>
+                    <div class="remaining-sections">${getRemainingsSections()}</div>
+                </div>
             </div>
         </div>
     `;

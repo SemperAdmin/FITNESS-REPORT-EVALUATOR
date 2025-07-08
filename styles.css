@@ -135,7 +135,331 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Promotion Endorsement Styles - REMOVED */
+/* Progressive Disclosure Styles */
+.section-context {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    border-left: 4px solid #2a5298;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.section-title {
+    font-size: 24px;
+    color: #1e3c72;
+    font-weight: 600;
+}
+
+.section-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-progress-text {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+}
+
+.section-progress-bar {
+    width: 100px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.section-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #45a049);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.section-description {
+    font-size: 15px;
+    color: #333;
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+.section-importance {
+    font-size: 13px;
+    color: #666;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+.trait-context {
+    margin-bottom: 20px;
+}
+
+.trait-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.trait-subtitle {
+    font-size: 22px;
+    color: #2a5298;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.trait-description {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+    font-style: italic;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.grade-context {
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.current-grade-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.grade-level {
+    font-size: 16px;
+    color: #1976d2;
+}
+
+.grade-meaning {
+    font-size: 14px;
+    color: #666;
+    font-style: italic;
+}
+
+.evaluation-guidance {
+    background: #fff3e0;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px 0;
+    border-left: 4px solid #ff9800;
+}
+
+.guidance-question {
+    font-size: 16px;
+    color: #333;
+    text-align: center;
+    font-weight: 500;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 30px 0;
+}
+
+.btn {
+    padding: 20px 30px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.button-label {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.button-description {
+    font-size: 12px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+    opacity: 0.8;
+}
+
+.navigation-helper {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 25px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.overall-progress {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+}
+
+.remaining-sections {
+    font-size: 12px;
+    color: #999;
+    margin-top: 5px;
+    font-style: italic;
+}
+.validation-panel {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    margin: 20px 0;
+    border-left: 4px solid #ff9800;
+    display: none;
+}
+
+.validation-panel.active {
+    display: block;
+}
+
+.validation-success {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #e8f5e8;
+    border-radius: 8px;
+    border-left: 4px solid #4CAF50;
+}
+
+.validation-icon {
+    font-size: 24px;
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.validation-summary {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.validation-summary h4 {
+    color: #1e3c72;
+    margin-bottom: 10px;
+}
+
+.validation-counts {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.error-count {
+    background: #ffebee;
+    color: #d32f2f;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid #ffcdd2;
+}
+
+.warning-count {
+    background: #fff3e0;
+    color: #f57c00;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid #ffcc02;
+}
+
+.info-count {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid #bbdefb;
+}
+
+.validation-group {
+    margin: 15px 0;
+}
+
+.validation-group h5 {
+    color: #1e3c72;
+    margin-bottom: 10px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.validation-item {
+    background: white;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 6px;
+    border-left: 4px solid #ddd;
+}
+
+.validation-item.error {
+    border-left-color: #f44336;
+    background: #ffebee;
+}
+
+.validation-item.warning {
+    border-left-color: #ff9800;
+    background: #fff8e1;
+}
+
+.validation-item.info {
+    border-left-color: #2196F3;
+    background: #e3f2fd;
+}
+
+.validation-message {
+    font-weight: 600;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.validation-item.error .validation-message {
+    color: #d32f2f;
+}
+
+.validation-item.warning .validation-message {
+    color: #f57c00;
+}
+
+.validation-item.info .validation-message {
+    color: #1976d2;
+}
+
+.validation-recommendation {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.4;
+    font-style: italic;
+}
 
 /* Setup and Form Styles */
 .setup-title {
@@ -272,6 +596,14 @@ body {
 .export-section {
     margin-top: 30px;
     text-align: center;
+}
+
+.button-row {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 30px;
 }
 
 /* Mobile Responsive */
