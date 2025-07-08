@@ -153,8 +153,6 @@ function showJustificationModal() {
     
     document.getElementById('justificationTitle').textContent = 
         `${trait.sectionTitle}: ${trait.name}`;
-    document.getElementById('justificationGrade').textContent = 
-        `Grade: ${pendingEvaluation.grade} (Value: ${pendingEvaluation.gradeNumber})`;
     document.getElementById('justificationText').value = '';
     
     // Reset tools
@@ -199,12 +197,6 @@ function saveJustification() {
         voiceBtn.textContent = '🎤 Voice Input';
     }
     
-    // Close examples dropdown
-    const examplesList = document.getElementById('examplesList');
-    if (examplesList) {
-        examplesList.classList.remove('active');
-    }
-    
     document.getElementById('justificationModal').classList.remove('active');
     pendingEvaluation = null;
     
@@ -225,12 +217,6 @@ function cancelJustification() {
     if (voiceBtn) {
         voiceBtn.classList.remove('active');
         voiceBtn.textContent = '🎤 Voice Input';
-    }
-    
-    // Close examples dropdown
-    const examplesList = document.getElementById('examplesList');
-    if (examplesList) {
-        examplesList.classList.remove('active');
     }
     
     document.getElementById('justificationModal').classList.remove('active');

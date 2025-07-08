@@ -32,15 +32,4 @@ document.addEventListener('DOMContentLoaded', function() {
             closeHelpModal();
         }
     });
-    
-    // Close examples when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.examples-dropdown')) {
-            const examplesList = document.getElementById('examplesList');
-            if (examplesList) {
-                examplesList.classList.remove('active');
-            }
-        }
-    });
 });
-    

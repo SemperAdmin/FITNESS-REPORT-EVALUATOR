@@ -6,50 +6,51 @@ let currentGenerationStyle = 'comprehensive';
 const sectionITemplates = {
     top: {
         openings: [
-            "An exceptional Marine who consistently demonstrates outstanding performance across all areas of responsibility.",
+            "An immensely talented and effective Marine who operates at a level beyond the grasp of peers.",
             "A highly motivated and technically proficient Marine whose performance significantly exceeds expectations.",
-            "An immensely talented and effective Marine who serves as a role model for subordinates and peers.",
+            "An exceptional Marine who consistently demonstrates outstanding performance across all areas of responsibility.",
             "A superior performer whose dedication to excellence and professional competence set the standard for others."
         ],
         performance: [
+            "Hand selected to assume critical billets, MRO completely outperformed peers in every season.",
             "Demonstrates exceptional technical and tactical proficiency in all assigned duties.",
-            "Consistently produces results that exceed unit standards and expectations.",
-            "Shows remarkable initiative and problem-solving abilities in challenging situations.",
-            "Exhibits outstanding attention to detail and commitment to mission accomplishment."
+            "A superb technician with impressive MOS and professional skills.",
+            "Consistently produces quality results while measurably improving unit performance."
         ],
         leadership: [
+            "Demonstrates impeccable moral character and matchless ability among peers to lead and inspire Marines and Sailors.",
             "Provides inspirational leadership that motivates subordinates to achieve their highest potential.",
-            "Demonstrates exceptional judgment and decision-making ability under pressure.",
-            "Mentors and develops subordinates with patience, skill, and genuine concern for their welfare.",
+            "An absolute technical expert whose professional skill rivals that of an officer.",
             "Serves as an exemplary role model, consistently demonstrating Marine Corps values."
         ],
         character: [
+            "The Corps could not find a finer ambassador for recruiting duty.",
             "Demonstrates unwavering integrity and embodies Marine Corps values in all actions.",
             "Shows exceptional courage and moral strength in challenging situations.",
             "Maintains the highest standards of personal and professional conduct."
         ],
         promotion: [
-            "Strongly recommended for immediate promotion and increased responsibility.",
-            "Ready for promotion ahead of peers and assignment to positions of greater responsibility.",
-            "Highly recommended for accelerated promotion and leadership positions.",
+            "An absolute must for promotion.",
+            "My highest recommendation for promotion.",
+            "Highly recommended for any officer commissioning program.",
             "Recommended for promotion without reservation and selection for advanced training opportunities."
         ]
     },
     middle: {
         openings: [
-            "A competent and reliable Marine who consistently meets expectations and demonstrates steady performance.",
+            "A talented Marine whose performance during the period was outstanding.",
             "A mature and dedicated Marine who performs duties with professionalism and attention to detail.",
             "A conscientious Marine who demonstrates solid performance and commitment to mission accomplishment.",
             "A dependable Marine who maintains appropriate standards and contributes positively to unit effectiveness."
         ],
         performance: [
-            "Demonstrates competent technical knowledge and consistently completes assigned tasks.",
-            "Shows good understanding of duties and performs them with appropriate attention to detail.",
+            "MRO quickly mastered section responsibilities and guided section to superior results.",
+            "A superb technician with impressive MOS and professional skills, MRO directed the various administrative and training requirements of the unit with impressive precision.",
             "Maintains required standards and contributes effectively to unit mission accomplishment.",
             "Exhibits reliable performance and adaptability in various operational environments."
         ],
         leadership: [
-            "Demonstrates appropriate leadership skills and maintains good rapport with subordinates.",
+            "A mature and dedicated leader who provides a guiding and steadying influence on Marines and Sailors.",
             "Shows sound judgment in routine situations and handles responsibilities competently.",
             "Provides adequate supervision and guidance to assigned personnel.",
             "Maintains professional demeanor and sets a positive example for junior Marines."
@@ -60,7 +61,7 @@ const sectionITemplates = {
             "Demonstrates reliability and commitment to Marine Corps standards."
         ],
         promotion: [
-            "Recommended for promotion with peers when due.",
+            "Highly recommended for promotion and billets of increased responsibility.",
             "Ready for promotion and additional responsibilities commensurate with grade.",
             "Recommend for continued professional development and promotion consideration.",
             "Suitable for promotion and assignment to positions of increased responsibility."
@@ -68,16 +69,16 @@ const sectionITemplates = {
     },
     developing: {
         openings: [
-            "A Marine who demonstrates potential but requires continued development and guidance.",
+            "An effective Marine who operates at a level expected of a Marine with rank and experience.",
             "A developing Marine who shows improvement and commitment to professional growth.",
             "A Marine who operates at the level expected for rank but has room for improvement.",
             "A Marine who demonstrates basic competency but needs additional mentoring and development."
         ],
         performance: [
-            "Demonstrates basic technical competency but requires continued development.",
+            "Demonstrates the leadership and technical skills required to accomplish assigned billet responsibilities.",
             "Shows understanding of fundamental duties but needs improvement in execution.",
             "Performs routine tasks adequately but requires supervision for complex assignments.",
-            "Exhibits potential for improvement with proper guidance and training."
+            "Directs the various administrative and training requirements of the unit with limited guidance."
         ],
         leadership: [
             "Demonstrates basic leadership potential but requires continued development.",
@@ -91,7 +92,7 @@ const sectionITemplates = {
             "Shows potential for growth in personal and professional conduct."
         ],
         promotion: [
-            "Recommend for continued development and promotion consideration when ready.",
+            "Promote.",
             "Suitable for promotion with additional training and mentoring.",
             "Recommend for professional development programs and promotion when due.",
             "Requires continued growth but shows potential for future advancement."
@@ -107,6 +108,8 @@ function analyzeTraitEvaluations() {
     const highGrades = grades.filter(g => g >= 6).length; // F and G grades
     const midGrades = grades.filter(g => g >= 4 && g <= 5).length; // D and E grades
     const lowGrades = grades.filter(g => g <= 3).length; // A, B, C grades
+    const aGrades = grades.filter(g => g === 1).length; // A grades only
+    const bcGrades = grades.filter(g => g >= 2 && g <= 3).length; // B and C grades
     
     // Determine performance tier
     let tier = 'middle';
@@ -123,6 +126,8 @@ function analyzeTraitEvaluations() {
         highGrades,
         midGrades,
         lowGrades,
+        aGrades,
+        bcGrades,
         percentageHigh: ((highGrades / total) * 100).toFixed(1),
         percentageMid: ((midGrades / total) * 100).toFixed(1),
         percentageLow: ((lowGrades / total) * 100).toFixed(1)
@@ -202,17 +207,9 @@ function generateSectionIComment() {
         comment += achievementTexts.join(' and ') + '. ';
     }
     
-    // Promotion recommendation
-    if (currentGenerationStyle === 'promotion-focused' || analysis.tier === 'top') {
-        comment += getRandomTemplate(templates.promotion);
-        
-        // Add specific recommendations for top performers
-        if (analysis.tier === 'top') {
-            comment += ' Strongly endorse for advanced professional military education and leadership positions.';
-        }
-    } else {
-        comment += getRandomTemplate(templates.promotion);
-    }
+    // Generate appropriate promotion recommendation based on performance tier
+    const promotionEndorsement = generatePromotionEndorsement(analysis.tier);
+    comment += promotionEndorsement;
     
     // Clean up the comment
     comment = comment.replace(/\s+/g, ' ').trim();
@@ -221,6 +218,41 @@ function generateSectionIComment() {
     document.getElementById('sectionITextarea').value = comment;
     generatedSectionI = comment;
     updateSectionIWordCount();
+}
+
+function generatePromotionEndorsement(performanceTier) {
+    let promotionStatement = '';
+    
+    // Generate promotion recommendation based on performance tier
+    if (performanceTier === 'top') {
+        const topStatements = [
+            "An absolute must for promotion.",
+            "My highest recommendation for promotion.",
+            "Highly recommended for promotion.",
+            "Promote at first opportunity."
+        ];
+        promotionStatement = getRandomFromArray(topStatements);
+    } else if (performanceTier === 'middle') {
+        const middleStatements = [
+            "Highly recommended for promotion.",
+            "Strongly recommended for promotion.",
+            "Promote at first opportunity."
+        ];
+        promotionStatement = getRandomFromArray(middleStatements);
+    } else if (performanceTier === 'developing') {
+        const developingStatements = [
+            "Recommended for promotion.",
+            "Promote with peers.",
+            "Promote."
+        ];
+        promotionStatement = getRandomFromArray(developingStatements);
+    }
+    
+    return promotionStatement;
+}
+
+function getRandomFromArray(array) {
+    return array[Math.floor(Math.random() * array.length)];
 }
 
 function getRandomTemplate(templates) {
@@ -252,6 +284,124 @@ function updateAnalysisDisplay(analysis) {
     
     tierDisplay.textContent = analysis.tier.charAt(0).toUpperCase() + analysis.tier.slice(1) + ' Performer';
     tierDisplay.className = `performance-tier-display tier-${analysis.tier}`;
+    
+    // Update the detailed grade groups display
+    updateGradeGroupsDisplay(analysis);
+}
+
+function updateGradeGroupsDisplay(analysis) {
+    const gradeGroupsContainer = document.getElementById('gradeGroupsContainer');
+    if (!gradeGroupsContainer) return;
+    
+    // Get grade details for each group
+    const gradeGroups = getGradeGroups();
+    
+    gradeGroupsContainer.innerHTML = `
+        <h4 style="color: #1e3c72; margin-bottom: 15px;">Grade Distribution by Category</h4>
+        <div class="grade-groups-grid">
+            <div class="grade-group ${gradeGroups.fgGrades.length > 0 ? 'has-grades' : 'no-grades'}">
+                <div class="grade-group-header">
+                    <span class="grade-group-title">F/G Grades (${gradeGroups.fgGrades.length})</span>
+                    <span class="grade-group-subtitle">Outstanding Performance</span>
+                </div>
+                <div class="grade-group-content">
+                    ${gradeGroups.fgGrades.length > 0 ? 
+                        gradeGroups.fgGrades.map(item => `
+                            <div class="grade-item">
+                                <span class="grade-badge grade-${item.grade.toLowerCase()}">${item.grade}</span>
+                                <span class="trait-name">${item.section}: ${item.trait}</span>
+                            </div>
+                        `).join('') : 
+                        '<div class="no-grades-message">No grades in this category</div>'
+                    }
+                </div>
+            </div>
+            
+            <div class="grade-group ${gradeGroups.deGrades.length > 0 ? 'has-grades' : 'no-grades'}">
+                <div class="grade-group-header">
+                    <span class="grade-group-title">D/E Grades (${gradeGroups.deGrades.length})</span>
+                    <span class="grade-group-subtitle">Above Average Performance</span>
+                </div>
+                <div class="grade-group-content">
+                    ${gradeGroups.deGrades.length > 0 ? 
+                        gradeGroups.deGrades.map(item => `
+                            <div class="grade-item">
+                                <span class="grade-badge grade-${item.grade.toLowerCase()}">${item.grade}</span>
+                                <span class="trait-name">${item.section}: ${item.trait}</span>
+                            </div>
+                        `).join('') : 
+                        '<div class="no-grades-message">No grades in this category</div>'
+                    }
+                </div>
+            </div>
+            
+            <div class="grade-group ${gradeGroups.bcGrades.length > 0 ? 'has-grades' : 'no-grades'}">
+                <div class="grade-group-header">
+                    <span class="grade-group-title">B/C Grades (${gradeGroups.bcGrades.length})</span>
+                    <span class="grade-group-subtitle">Average Performance</span>
+                </div>
+                <div class="grade-group-content">
+                    ${gradeGroups.bcGrades.length > 0 ? 
+                        gradeGroups.bcGrades.map(item => `
+                            <div class="grade-item">
+                                <span class="grade-badge grade-${item.grade.toLowerCase()}">${item.grade}</span>
+                                <span class="trait-name">${item.section}: ${item.trait}</span>
+                            </div>
+                        `).join('') : 
+                        '<div class="no-grades-message">No grades in this category</div>'
+                    }
+                </div>
+            </div>
+            
+            <div class="grade-group ${gradeGroups.aGrades.length > 0 ? 'has-grades' : 'no-grades'}">
+                <div class="grade-group-header">
+                    <span class="grade-group-title">A Grades (${gradeGroups.aGrades.length})</span>
+                    <span class="grade-group-subtitle">Below Standards</span>
+                </div>
+                <div class="grade-group-content">
+                    ${gradeGroups.aGrades.length > 0 ? 
+                        gradeGroups.aGrades.map(item => `
+                            <div class="grade-item">
+                                <span class="grade-badge grade-${item.grade.toLowerCase()}">${item.grade}</span>
+                                <span class="trait-name">${item.section}: ${item.trait}</span>
+                            </div>
+                        `).join('') : 
+                        '<div class="no-grades-message">No grades in this category</div>'
+                    }
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getGradeGroups() {
+    const groups = {
+        fgGrades: [], // F and G grades
+        deGrades: [], // D and E grades  
+        bcGrades: [], // B and C grades
+        aGrades: []   // A grades
+    };
+    
+    Object.values(evaluationResults).forEach(result => {
+        const item = {
+            section: result.section,
+            trait: result.trait,
+            grade: result.grade,
+            gradeNumber: result.gradeNumber
+        };
+        
+        if (result.gradeNumber >= 6) { // F and G
+            groups.fgGrades.push(item);
+        } else if (result.gradeNumber >= 4 && result.gradeNumber <= 5) { // D and E
+            groups.deGrades.push(item);
+        } else if (result.gradeNumber >= 2 && result.gradeNumber <= 3) { // B and C
+            groups.bcGrades.push(item);
+        } else if (result.gradeNumber === 1) { // A
+            groups.aGrades.push(item);
+        }
+    });
+    
+    return groups;
 }
 
 function regenerateWithStyle(style) {
@@ -314,4 +464,3 @@ function showSectionIGeneration() {
     const analysis = analyzeTraitEvaluations();
     updateAnalysisDisplay(analysis);
 }
-    

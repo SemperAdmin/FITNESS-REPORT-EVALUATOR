@@ -141,6 +141,11 @@
                 </div>
             </div>
             
+            <!-- Grade Groups Display -->
+            <div class="grade-groups-panel" id="gradeGroupsContainer">
+                <!-- Grade groups will be populated by JavaScript -->
+            </div>
+            
             <div style="text-align: center; margin: 30px 0;">
                 <div class="generation-options">
                     <button class="generation-btn primary" onclick="generateSectionIComment()">🔄 Generate Section I Comment</button>
@@ -206,17 +211,11 @@
         <div class="justification-content">
             <div class="justification-header">
                 <div class="justification-title" id="justificationTitle"></div>
-                <div class="justification-grade" id="justificationGrade"></div>
                 <p>Please provide justification for this marking:</p>
             </div>
             
             <div class="justification-tools">
                 <button class="tool-btn" onclick="toggleVoiceInput()" id="voiceBtn">🎤 Voice Input</button>
-                <div class="examples-dropdown">
-                    <button class="tool-btn" onclick="toggleExamples()">📝 Examples</button>
-                    <div class="examples-list" id="examplesList"></div>
-                </div>
-                <button class="tool-btn" onclick="spellCheck()">✓ Spell Check</button>
             </div>
             
             <textarea class="justification-textarea" id="justificationText" 
