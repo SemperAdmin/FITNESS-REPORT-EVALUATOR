@@ -6,6 +6,8 @@ let allTraits = [];
 let isReportingSenior = false;
 let pendingEvaluation = null;
 let evaluationMeta = {};
+let isInReviewMode = false;
+let traitBeingReevaluated = null;
 
 // Helper Functions (defined first)
 function getSectionProgress(sectionKey) {
@@ -85,11 +87,13 @@ function updateProgress() {
     const progress = (currentTraitIndex / allTraits.length) * 100;
     document.getElementById('progressFill').style.width = progress + '%';
     
-    if (currentTraitIndex < allTraits.length) {
+    if (currentTraitIndex < allTraits.length && !isInReviewMode) {
         const currentTrait = allTraits[currentTraitIndex];
         const sectionProgress = getSectionProgress(currentTrait.sectionKey);
         document.getElementById('progressText').textContent = 
             `${currentTrait.sectionTitle}: ${currentTrait.name} (${sectionProgress.current} of ${sectionProgress.total} in section)`;
+    } else if (isInReviewMode) {
+        document.getElementById('progressText').textContent = 'Review and Edit Evaluations';
     } else {
         document.getElementById('progressText').textContent = 'Directed Comments Selection';
     }
@@ -174,13 +178,13 @@ function initializeTraits() {
 function renderCurrentTrait() {
     const container = document.getElementById('evaluationContainer');
     
-    if (currentTraitIndex >= allTraits.length) {
+    if (currentTraitIndex >= allTraits.length && !traitBeingReevaluated) {
         container.innerHTML = '';
-        showDirectedCommentsScreen();
+        showReviewScreen();
         return;
     }
 
-    const trait = allTraits[currentTraitIndex];
+    const trait = traitBeingReevaluated || allTraits[currentTraitIndex];
     
     // Debug logging
     console.log('Current trait:', trait);
@@ -271,7 +275,7 @@ function getGradeClass(grade) {
 }
 
 function handleGradeAction(action) {
-    const trait = allTraits[currentTraitIndex];
+    const trait = traitBeingReevaluated || allTraits[currentTraitIndex];
     let selectedGrade = currentEvaluationLevel;
     
     switch(action) {
@@ -301,7 +305,7 @@ function handleGradeAction(action) {
 }
 
 function finalizeTrait(grade) {
-    const trait = allTraits[currentTraitIndex];
+    const trait = traitBeingReevaluated || allTraits[currentTraitIndex];
     
     pendingEvaluation = {
         trait: trait,
@@ -318,7 +322,11 @@ function showJustificationModal() {
     
     document.getElementById('justificationTitle').textContent = 
         `${trait.sectionTitle}: ${trait.name}`;
-    document.getElementById('justificationText').value = '';
+    
+    // Pre-fill with existing justification if re-evaluating
+    const existingKey = `${trait.sectionKey}_${trait.traitKey}`;
+    const existingJustification = evaluationResults[existingKey]?.justification || '';
+    document.getElementById('justificationText').value = existingJustification;
     
     // Reset tools
     const voiceBtn = document.getElementById('voiceBtn');
@@ -365,10 +373,20 @@ function saveJustification() {
     document.getElementById('justificationModal').classList.remove('active');
     pendingEvaluation = null;
     
-    currentTraitIndex++;
-    currentEvaluationLevel = 'B';
-    updateProgress();
-    renderCurrentTrait();
+    // Handle post-save navigation
+    if (traitBeingReevaluated) {
+        // Return to review screen after re-evaluation
+        traitBeingReevaluated = null;
+        currentEvaluationLevel = 'B';
+        document.getElementById('evaluationContainer').innerHTML = '';
+        showReviewScreen();
+    } else {
+        // Continue with normal flow
+        currentTraitIndex++;
+        currentEvaluationLevel = 'B';
+        updateProgress();
+        renderCurrentTrait();
+    }
 }
 
 function cancelJustification() {
@@ -386,6 +404,189 @@ function cancelJustification() {
     
     document.getElementById('justificationModal').classList.remove('active');
     pendingEvaluation = null;
+}
+
+// NEW REVIEW FUNCTIONS
+function showReviewScreen() {
+    isInReviewMode = true;
+    updateProgress();
+    
+    // Hide all other cards
+    document.querySelectorAll('.evaluation-card, .directed-comments-card, .section-i-generation-card, .summary-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    
+    // Show review card
+    document.getElementById('reviewCard').classList.add('active');
+    
+    // Populate review content
+    populateReviewScreen();
+}
+
+function populateReviewScreen() {
+    const reviewGrid = document.getElementById('reviewGrid');
+    
+    // Group results by section
+    const sectionGroups = {};
+    Object.keys(evaluationResults).forEach(key => {
+        const result = evaluationResults[key];
+        if (!sectionGroups[result.section]) {
+            sectionGroups[result.section] = [];
+        }
+        sectionGroups[result.section].push({
+            key: key,
+            ...result
+        });
+    });
+    
+    // Generate review grid
+    reviewGrid.innerHTML = '';
+    Object.keys(sectionGroups).forEach(sectionTitle => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'review-section';
+        
+        const traits = sectionGroups[sectionTitle];
+        const traitsHTML = traits.map(trait => {
+            const gradeDescription = getGradeDescription(trait.grade);
+            return `
+                <div class="review-trait-item">
+                    <div class="review-trait-header">
+                        <div class="review-trait-name">${trait.trait}</div>
+                        <button class="btn-edit" onclick="editTrait('${trait.key}')">Edit</button>
+                    </div>
+                    <div class="review-trait-criteria">
+                        <div class="criteria-meets">
+                            <strong>Selected Standard:</strong> ${gradeDescription}
+                        </div>
+                    </div>
+                    <div class="review-trait-justification">
+                        ${trait.justification.length > 150 ? trait.justification.substring(0, 150) + '...' : trait.justification}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        sectionDiv.innerHTML = `
+            <div class="review-section-title">${sectionTitle}</div>
+            <div class="review-traits">${traitsHTML}</div>
+        `;
+        
+        reviewGrid.appendChild(sectionDiv);
+    });
+}
+
+function getGradeDescription(grade) {
+    const descriptions = {
+        'A': "Significantly below standards",
+        'B': "Meets requirements and expectations", 
+        'C': "Below average but acceptable",
+        'D': "Consistently produces quality results",
+        'E': "Above average performance",
+        'F': "Results far surpass expectations",
+        'G': "Exceptional, setting new standards"
+    };
+    return descriptions[grade] || "Grade description not available";
+}
+
+function editTrait(traitKey) {
+    // Find the trait in allTraits
+    const [sectionKey, traitKeyPart] = traitKey.split('_');
+    const trait = allTraits.find(t => t.sectionKey === sectionKey && t.traitKey === traitKeyPart);
+    
+    if (!trait) {
+        console.error('Trait not found:', traitKey);
+        return;
+    }
+    
+    // Show re-evaluation modal first
+    showReevaluationModal(trait, traitKey);
+}
+
+function showReevaluationModal(trait, traitKey) {
+    const modal = document.getElementById('reevaluateModal');
+    const currentResult = evaluationResults[traitKey];
+    
+    // Set modal content
+    document.getElementById('reevaluateTitle').textContent = `${trait.sectionTitle}: ${trait.name}`;
+    
+    // Display current evaluation without showing the grade
+    const currentEvalDisplay = document.getElementById('currentEvalDisplay');
+    currentEvalDisplay.innerHTML = `
+        <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin: 15px 0;">
+            <div class="grade-display ${getGradeClass(currentResult.grade)}" style="padding: 15px; margin: 0;">
+                <strong>Current Evaluation</strong>
+            </div>
+        </div>
+    `;
+    
+    // Display current criteria
+    const currentEvalCriteria = document.getElementById('currentEvalCriteria');
+    const gradeDescription = getGradeDescription(currentResult.grade);
+    currentEvalCriteria.innerHTML = `
+        <div class="criteria-meets">
+            <strong>Selected Standard:</strong> ${gradeDescription}
+        </div>
+    `;
+    
+    // Display current justification
+    const currentEvalJustification = document.getElementById('currentEvalJustification');
+    currentEvalJustification.textContent = currentResult.justification;
+    
+    // Store trait info for re-evaluation
+    modal.dataset.traitKey = traitKey;
+    modal.dataset.sectionKey = trait.sectionKey;
+    modal.dataset.traitKeyPart = trait.traitKey;
+    
+    modal.classList.add('active');
+}
+
+function cancelReevaluation() {
+    document.getElementById('reevaluateModal').classList.remove('active');
+}
+
+function startReevaluation() {
+    const modal = document.getElementById('reevaluateModal');
+    const traitKey = modal.dataset.traitKey;
+    const sectionKey = modal.dataset.sectionKey;
+    const traitKeyPart = modal.dataset.traitKeyPart;
+    
+    // Find the trait
+    const trait = allTraits.find(t => t.sectionKey === sectionKey && t.traitKey === traitKeyPart);
+    
+    if (!trait) {
+        console.error('Trait not found for re-evaluation');
+        return;
+    }
+    
+    // Set up for re-evaluation
+    traitBeingReevaluated = trait;
+    currentEvaluationLevel = 'B';
+    isInReviewMode = false;
+    
+    // Hide modal and review screen
+    modal.classList.remove('active');
+    document.getElementById('reviewCard').classList.remove('active');
+    
+    // Render the trait evaluation interface
+    renderCurrentTrait();
+    updateProgress();
+}
+
+function goBackToLastTrait() {
+    if (currentTraitIndex > 0) {
+        currentTraitIndex--;
+        isInReviewMode = false;
+        currentEvaluationLevel = 'B';
+        document.getElementById('reviewCard').classList.remove('active');
+        updateProgress();
+        renderCurrentTrait();
+    }
+}
+
+function proceedToDirectedComments() {
+    isInReviewMode = false;
+    document.getElementById('reviewCard').classList.remove('active');
+    showDirectedCommentsScreen();
 }
 
 function showSummary() {
