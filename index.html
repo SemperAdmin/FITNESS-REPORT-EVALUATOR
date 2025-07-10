@@ -125,6 +125,25 @@
         <!-- Evaluation Cards -->
         <div id="evaluationContainer"></div>
 
+        <!-- Review Card - NEW -->
+        <div class="review-card" id="reviewCard">
+            <h2 style="text-align: center; color: #1e3c72; margin-bottom: 20px;">Review and Edit Evaluations</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 30px;">
+                Review all trait evaluations below. Click "Edit" to modify any evaluation before proceeding to directed comments.
+            </p>
+            
+            <div class="review-grid" id="reviewGrid">
+                <!-- Review items will be populated by JavaScript -->
+            </div>
+            
+            <div class="review-actions">
+                <div class="button-row">
+                    <button class="btn btn-secondary" onclick="goBackToLastTrait()">← Back to Traits</button>
+                    <button class="btn btn-meets" onclick="proceedToDirectedComments()">Continue to Directed Comments</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Section I Generation Card -->
         <div class="section-i-generation-card" id="sectionIGenerationCard">
             <h2 style="text-align: center; color: #1e3c72; margin-bottom: 20px;">Section I Comment Generation</h2>
@@ -236,6 +255,34 @@
             <div class="justification-buttons">
                 <button class="btn btn-cancel" onclick="cancelJustification()">Cancel</button>
                 <button class="btn btn-save" onclick="saveJustification()">Save & Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Re-evaluation Modal -->
+    <div class="reevaluate-modal" id="reevaluateModal">
+        <div class="reevaluate-content">
+            <div class="reevaluate-header">
+                <h3 id="reevaluateTitle"></h3>
+                <p>You are re-evaluating this trait. Your current evaluation is shown below.</p>
+            </div>
+            
+            <div class="reevaluate-body">
+                <div class="current-evaluation">
+                    <h4>Current Evaluation</h4>
+                    <div class="current-eval-display" id="currentEvalDisplay"></div>
+                    <div class="current-eval-criteria" id="currentEvalCriteria"></div>
+                    <div class="current-eval-justification" id="currentEvalJustification"></div>
+                </div>
+            </div>
+            
+            <div class="reevaluate-options">
+                <h4>Choose an option:</h4>
+                <p>You can keep the current evaluation or start the trait evaluation process over.</p>
+                <div class="reevaluate-buttons">
+                    <button class="btn btn-secondary" onclick="cancelReevaluation()">Keep Current</button>
+                    <button class="btn btn-meets" onclick="startReevaluation()">Re-evaluate Trait</button>
+                </div>
             </div>
         </div>
     </div>
