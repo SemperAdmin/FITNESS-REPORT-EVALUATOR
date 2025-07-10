@@ -128,29 +128,47 @@ function startEvaluation() {
 
 function initializeTraits() {
     allTraits = [];
+    
+    // Debug logging
+    console.log('firepData:', firepData);
+    console.log('firepData.sections:', firepData.sections);
+    
     ['D', 'E', 'F', 'G'].forEach(sectionKey => {
         const section = firepData.sections[sectionKey];
-        Object.keys(section.traits).forEach(traitKey => {
-            allTraits.push({
-                sectionKey,
-                traitKey,
-                sectionTitle: section.title,
-                ...section.traits[traitKey]
+        console.log(`Section ${sectionKey}:`, section);
+        
+        if (section && section.traits) {
+            Object.keys(section.traits).forEach(traitKey => {
+                const trait = {
+                    sectionKey,
+                    traitKey,
+                    sectionTitle: section.title,
+                    ...section.traits[traitKey]
+                };
+                console.log(`Adding trait ${sectionKey}-${traitKey}:`, trait);
+                allTraits.push(trait);
             });
-        });
+        }
     });
     
     if (isReportingSenior) {
         const sectionH = firepData.sections.H;
-        Object.keys(sectionH.traits).forEach(traitKey => {
-            allTraits.push({
-                sectionKey: 'H',
-                traitKey,
-                sectionTitle: sectionH.title,
-                ...sectionH.traits[traitKey]
+        if (sectionH && sectionH.traits) {
+            Object.keys(sectionH.traits).forEach(traitKey => {
+                const trait = {
+                    sectionKey: 'H',
+                    traitKey,
+                    sectionTitle: sectionH.title,
+                    ...sectionH.traits[traitKey]
+                };
+                console.log(`Adding H trait ${traitKey}:`, trait);
+                allTraits.push(trait);
             });
-        });
+        }
     }
+    
+    console.log('All traits initialized:', allTraits);
+    console.log('Total traits:', allTraits.length);
 }
 
 function renderCurrentTrait() {
@@ -163,7 +181,21 @@ function renderCurrentTrait() {
     }
 
     const trait = allTraits[currentTraitIndex];
-    const gradeInfo = firepData.gradeDescriptions[currentEvaluationLevel];
+    
+    // Debug logging
+    console.log('Current trait:', trait);
+    console.log('Current evaluation level:', currentEvaluationLevel);
+    console.log('Grade descriptions:', trait.gradeDescriptions);
+    
+    // Use trait-specific grade description, fallback to generic if not available
+    let gradeDescription = '';
+    if (trait.gradeDescriptions && trait.gradeDescriptions[currentEvaluationLevel]) {
+        gradeDescription = trait.gradeDescriptions[currentEvaluationLevel];
+    } else {
+        // Fallback to generic descriptions
+        gradeDescription = firepData.gradeDescriptions[currentEvaluationLevel]?.description || 'Grade description not available';
+    }
+    
     const isAtA = currentEvaluationLevel === 'A';
     const sectionProgress = getSectionProgress(trait.sectionKey);
     const sectionInfo = getSectionInfo(trait.sectionKey);
@@ -191,8 +223,8 @@ function renderCurrentTrait() {
                 </div>
             </div>
             
-            <div class="grade-display ${gradeInfo.class}">
-                <div class="grade-description">${gradeInfo.description}</div>
+            <div class="grade-display ${getGradeClass(currentEvaluationLevel)}">
+                <div class="grade-description">${gradeDescription}</div>
             </div>
             
             <div class="evaluation-guidance">
@@ -223,6 +255,19 @@ function renderCurrentTrait() {
             </div>
         </div>
     `;
+}
+
+function getGradeClass(grade) {
+    const gradeClasses = {
+        'A': 'adverse',
+        'B': 'below-standards',
+        'C': 'below-standards',
+        'D': 'acceptable',
+        'E': 'acceptable',
+        'F': 'excellent',
+        'G': 'excellent'
+    };
+    return gradeClasses[grade] || 'acceptable';
 }
 
 function handleGradeAction(action) {

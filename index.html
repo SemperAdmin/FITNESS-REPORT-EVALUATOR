@@ -313,18 +313,24 @@
         </p>
     </div>
 
-    <!-- Scripts -->
+    <!-- Scripts - CRITICAL: Load data.js FIRST -->
     <script>
         // Check if files are loading
         console.log('HTML loaded successfully');
     </script>
+    
+    <!-- Load data.js FIRST - this contains firepData -->
     <script src="js/data.js" onerror="console.error('Failed to load data.js')"></script>
+    
+    <!-- Then load all other scripts -->
     <script src="js/voice.js" onerror="console.error('Failed to load voice.js')"></script>
     <script src="js/utils.js" onerror="console.error('Failed to load utils.js')"></script>
     <script src="js/validation.js" onerror="console.error('Failed to load validation.js')"></script>
     <script src="js/sectionI.js" onerror="console.error('Failed to load sectionI.js')"></script>
     <script src="js/directedComments.js" onerror="console.error('Failed to load directedComments.js')"></script>
     <script src="js/evaluation.js" onerror="console.error('Failed to load evaluation.js')"></script>
+    
+    <!-- Load app.js LAST - this initializes the application -->
     <script src="js/app.js" onerror="console.error('Failed to load app.js')"></script>
 </body>
 </html>
