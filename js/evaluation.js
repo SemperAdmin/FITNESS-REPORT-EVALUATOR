@@ -718,13 +718,6 @@ function showSummary() {
         summaryGrid.appendChild(directedCommentsItem);
     }
 
-    // Prompt save to profile after summary is shown
-    setTimeout(() => {
-        if (typeof showSaveToProfilePrompt === 'function') {
-            try { showSaveToProfilePrompt(); } catch (err) { console.warn('showSaveToProfilePrompt failed:', err); }
-        }
-    }, 400);
-
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
