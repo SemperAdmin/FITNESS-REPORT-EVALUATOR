@@ -68,7 +68,45 @@
                     <input type="date" class="form-input" id="toDateInput">
                 </div>
             </div>
-            
+
+            <!-- Occasion Type Selection -->
+            <div class="form-group">
+                <label class="form-label">
+                    Occasion Type:
+                    <button type="button" class="info-icon" onclick="showTooltip(event, 'occasion-setup-tooltip')" title="What does Occasion mean?">ℹ️</button>
+                </label>
+                <select class="setup-select" id="evaluationOccasionSetup">
+                    <option value="">Select Occasion Type...</option>
+                    <option value="GC">Grade Change - GC</option>
+                    <option value="DC">CMC Directed - DC</option>
+                    <option value="CH">Change of Reporting Senior - CH</option>
+                    <option value="TR">Transfer - TR</option>
+                    <option value="CD">Change of Duty - CD</option>
+                    <option value="TD">To Temporary Duty - TD</option>
+                    <option value="FD">From Temporary Duty - FD</option>
+                    <option value="EN">End of Service - EN</option>
+                    <option value="CS">Change in Status - CS</option>
+                    <option value="AN">Annual (Active Component) - AN</option>
+                    <option value="AR">Annual (Reserve Component) - AR</option>
+                    <option value="SA">Semiannual (Lieutenants only) - SA</option>
+                    <option value="RT">Reserve Training - RT</option>
+                </select>
+                <div class="tooltip-content" id="occasion-setup-tooltip">
+                    <strong>Evaluation Occasion Types per MCO 1610.7B:</strong><br><br>
+                    <strong>Grade Change (GC):</strong> When Marine is promoted<br>
+                    <strong>CMC Directed (DC):</strong> Special evaluations ordered by CMC<br>
+                    <strong>Change of RS (CH):</strong> When Reporting Senior changes<br>
+                    <strong>Transfer (TR):</strong> Marine changes duty station<br>
+                    <strong>Change of Duty (CD):</strong> New assignment, same unit<br>
+                    <strong>To/From Temp Duty (TD/FD):</strong> Temporary assignments<br>
+                    <strong>End of Service (EN):</strong> Retirement, separation, or EAS<br>
+                    <strong>Change in Status (CS):</strong> Active ↔ Reserve changes<br>
+                    <strong>Annual (AN/AR):</strong> Regular yearly evaluation<br>
+                    <strong>Semiannual (SA):</strong> Lieutenants only, twice yearly<br>
+                    <strong>Reserve Training (RT):</strong> Annual training evaluation
+                </div>
+            </div>
+
             <div class="form-group">
                 <label class="form-label">Is the person being evaluated a Reporting Senior?</label>
                 <select class="setup-select" id="reportingSeniorSelect">
@@ -437,7 +475,7 @@
         </div>
     </div>
     
-    <div class="profile-card" id="profileDashboardCard">
+    <div class="profile-card" id="profileDashboardCard" style="display: none;">
         <!-- Breadcrumb Navigation -->
         <div class="breadcrumb-nav" id="breadcrumbNav">
             <button class="breadcrumb-btn" onclick="showProfileDashboard()" title="Return to Dashboard">
