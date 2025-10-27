@@ -385,8 +385,36 @@
     </div>
 
     <!-- Place Profile cards INSIDE the body, above scripts -->
-    <!-- Login Card: show first -->
-    <div class="profile-card active" id="profileLoginCard">
+    <!-- Mode Selection Card: show first -->
+    <div class="profile-card active" id="modeSelectionCard">
+        <div class="profile-title">Welcome to USMC FITREP Evaluator</div>
+        <p class="profile-description">Choose how you want to use this tool:</p>
+
+        <div class="mode-options">
+            <button class="mode-option-btn" onclick="startStandaloneMode()">
+                <div class="mode-icon">📝</div>
+                <div class="mode-title">Single Evaluation</div>
+                <div class="mode-description">Complete one FITREP without saving to a profile</div>
+            </button>
+
+            <button class="mode-option-btn" onclick="showProfileLogin()">
+                <div class="mode-icon">👤</div>
+                <div class="mode-title">RS Dashboard</div>
+                <div class="mode-description">Manage multiple evaluations over time with analytics</div>
+            </button>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+            <p style="font-size: 13px; color: #666;">
+                <strong>Need help deciding?</strong><br>
+                Use Single Evaluation for quick one-time use.<br>
+                Use RS Dashboard if you evaluate multiple Marines regularly.
+            </p>
+        </div>
+    </div>
+
+    <!-- Login Card: show after mode selection -->
+    <div class="profile-card" id="profileLoginCard">
         <div class="profile-title">Reporting Senior Login</div>
         <p class="profile-description">Sign in to manage saved evaluations and view your RS Dashboard.</p>
     
@@ -410,6 +438,16 @@
     </div>
     
     <div class="profile-card" id="profileDashboardCard">
+        <!-- Breadcrumb Navigation -->
+        <div class="breadcrumb-nav" id="breadcrumbNav">
+            <button class="breadcrumb-btn" onclick="showProfileDashboard()" title="Return to Dashboard">
+                <span class="breadcrumb-icon">📊</span>
+                <span class="breadcrumb-text">Dashboard</span>
+            </button>
+            <span class="breadcrumb-separator" id="breadcrumbSeparator" style="display: none;">›</span>
+            <span class="breadcrumb-current" id="breadcrumbCurrent" style="display: none;"></span>
+        </div>
+
         <div class="profile-header-section">
             <div class="profile-info">
                 <h2 id="profileHeaderName">RS Name</h2>
@@ -421,8 +459,8 @@
                     <span class="stat-label">Saved Evaluations</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-value" id="pendingSync">0</span>
-                    <span class="stat-label">Pending Sync</span>
+                    <span class="stat-value" id="storageIndicator" style="font-size: 14px; font-weight: 600;">0 MB / 5 MB</span>
+                    <span class="stat-label">Storage Used</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-value status-dot offline"></span>
@@ -491,16 +529,30 @@
                         <span style="color:#000; font-weight:700;"># Rpts <span id="rankRptsVal">0</span></span>
                     </div>
                 </div>
-                <table class="profile-grid" id="profileGrid">
+                <table class="profile-grid" id="profileGrid" role="grid" aria-label="Evaluation details grid">
                     <thead>
                         <tr>
-                            <th>#</th><th>Marine</th><th>Occasion</th><th>Ending Date</th>
-                            <th>Performance</th><th>Proficiency</th><th>Courage</th><th>Stress Tol.</th>
-                            <th>Initiative</th><th>Leading</th><th>Dev. Others</th><th>Set Example</th>
-                            <th>Well-Being</th><th>Comm Skills</th><th>PME</th><th>Decision</th><th>Judgement</th>
-                            <th>Avg</th><th>RV</th><th>Cum RV</th>
-                            <!-- Add missing header so columns align with data -->
-                            <th>Actions</th>
+                            <th scope="col">#</th>
+                            <th scope="col">Marine</th>
+                            <th scope="col">Occasion</th>
+                            <th scope="col">Ending Date</th>
+                            <th scope="col">Performance</th>
+                            <th scope="col">Proficiency</th>
+                            <th scope="col">Courage</th>
+                            <th scope="col">Stress Tol.</th>
+                            <th scope="col">Initiative</th>
+                            <th scope="col">Leading</th>
+                            <th scope="col">Dev. Others</th>
+                            <th scope="col">Set Example</th>
+                            <th scope="col">Well-Being</th>
+                            <th scope="col">Comm Skills</th>
+                            <th scope="col">PME</th>
+                            <th scope="col">Decision</th>
+                            <th scope="col">Judgement</th>
+                            <th scope="col">Avg</th>
+                            <th scope="col" title="Relative Value: Competitive ranking score (80-100+)">RV ℹ️</th>
+                            <th scope="col" title="Cumulative RV: Running average of all evaluations">Cum RV ℹ️</th>
+                            <th scope="col">Actions</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -539,13 +591,23 @@
 
             <div class="storage-info">
                 <div class="storage-option">
-                    <label for="evaluationOccasion"><strong>Occasion</strong></label>
+                    <label for="evaluationOccasion">
+                        <strong>Occasion</strong>
+                        <button type="button" class="info-icon" onclick="showTooltip(event, 'occasion-tooltip')" title="What does Occasion mean?">ℹ️</button>
+                    </label>
                     <select id="evaluationOccasion">
                         <option value="Annual">Annual</option>
                         <option value="Transfer">Transfer</option>
                         <option value="Temporary Duty">Temporary Duty</option>
                         <option value="Other">Other</option>
                     </select>
+                    <div class="tooltip-content" id="occasion-tooltip">
+                        <strong>Evaluation Occasion Types:</strong><br>
+                        <strong>Annual:</strong> Regular yearly evaluation<br>
+                        <strong>Transfer:</strong> When Marine changes duty station<br>
+                        <strong>Temporary Duty:</strong> Short-term assignment<br>
+                        <strong>Other:</strong> Special circumstances
+                    </div>
                 </div>
                 <div class="storage-option">
                     <input type="checkbox" id="saveGitHub" />
