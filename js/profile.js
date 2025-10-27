@@ -595,12 +595,6 @@ function showSaveToProfilePrompt() {
     document.getElementById('savePreviewPeriod').textContent =
         `${evaluationMeta.fromDate} to ${evaluationMeta.toDate}`;
     document.getElementById('savePreviewAverage').textContent = calculateFitrepAverage();
-
-    // New: prefill occasion from setup if available
-    const occSel = document.getElementById('evaluationOccasion');
-    if (occSel && evaluationMeta.occasionType) {
-        occSel.value = evaluationMeta.occasionType;
-    }
 }
 
 async function confirmSaveToProfile() {
@@ -611,7 +605,8 @@ async function confirmSaveToProfile() {
         if (!proceed) return;
     }
 
-    const occasion = document.getElementById('evaluationOccasion').value;
+    // Use occasion type captured during setup (not from modal, as we removed that field)
+    const occasion = evaluationMeta.occasionType || 'Not Specified';
     const shouldSyncToGitHub = document.getElementById('saveGitHub').checked;
 
     // If not logged in, create a local offline profile to persist the evaluation
