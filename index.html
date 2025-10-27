@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USMC FITREP Evaluator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="assets/images/Logo.png" alt="Semper Admin Logo" class="header-logo" onerror="this.style.display='none'">
+            <h1>USMC FITNESS REPORT EVALUATOR</h1>
+            <p>Unbiased FITREP marking assistance tool</p>
+            <div class="tool-credit">by Semper Admin</div>
+            <!-- Header links: remove backticks -->
+            <a href="https://youtu.be/EzhEMDJ6ez0" target="_blank" style="color: #1e40af; text-decoration: underline;">FITREPS: Marking Philosophy Video</a>
+
+            <div class="progress-section">
+                <div class="progress-details">
+                    <span id="progressText">Setup - Determine Role</span>
+                    <span class="auto-save-indicator" id="autoSaveIndicator">✓ Auto-saved</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Warning Banner -->
+        <div class="warning-banner" id="dataWarning">
+            ⚠️ <strong>Data Privacy Notice:</strong> This tool stores data locally in your browser. Data will be lost if you clear browser storage or use incognito mode. For official evaluations, save your work frequently and export results.
+        </div>
+
+        <!-- Setup Card: start hidden (no 'active') -->
+        <!-- Setup Card: add Occasion Type -->
+        <div class="setup-card" id="setupCard">
+            <div class="setup-title">Evaluation Setup</div>
+            
+            <div class="form-group">
+                <label class="form-label">Marine Being Evaluated:</label>
+                <input type="text" class="form-input" id="marineNameInput" placeholder="Last Name, First Name MI">
+            </div>
+            
+            <!-- New: Marine Rank dropdown -->
+            <div class="form-group">
+                <label class="form-label">Marine Rank:</label>
+                <select class="setup-select" id="marineRankSelect">
+                    <option value="">Select Rank...</option>
+                    <option value="Sgt">Sgt</option>
+                    <option value="SSgt">SSgt</option>
+                    <option value="GySgt">GySgt</option>
+                    <option value="MSgt">MSgt</option>
+                    <option value="1stSgt">1stSgt</option>
+                    <option value="2ndLt">2ndLt</option>
+                    <option value="1stLt">1stLt</option>
+                    <option value="Capt">Capt</option>
+                    <option value="Maj">Maj</option>
+                    <option value="LtCol">LtCol</option>
+                    <option value="Col">Col</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Evaluation Period:</label>
+                <div class="date-inputs">
+                    <input type="date" class="form-input" id="fromDateInput">
+                    <input type="date" class="form-input" id="toDateInput">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Is the person being evaluated a Reporting Senior?</label>
+                <select class="setup-select" id="reportingSeniorSelect">
+                    <option value="">Select...</option>
+                    <option value="yes">Yes - Include Section H (Evaluation Responsibilities)</option>
+                    <option value="no">No - Standard Evaluation (Sections D-G only)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Reporting Senior Information:</label>
+                <input type="text" class="form-input" id="evaluatorNameInput" placeholder="Reporting Senior Name">
+            </div>
+            
+            <button class="btn btn-meets" onclick="startEvaluation()" style="margin-top: 20px; width: 100%;">Begin Evaluation</button>
+        </div>
+
+        <!-- How This Works Card -->
+        <div class="setup-card" id="howItWorksCard" style="text-align: left;">
+            <div class="setup-title" style="text-align: center;">How This Tool Works</div>
+            
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #1e3c72; margin-bottom: 10px;">🎯 Unbiased Evaluation Philosophy</h3>
+                <p style="line-height: 1.6; margin-bottom: 15px;">
+                    Traditional FITREP marking often suffers from <strong>grade inflation</strong> and <strong>preconceived notions</strong>. 
+                    Evaluators frequently decide on a final grade first, then justify it backward. This tool eliminates that bias.
+                </p>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #1e3c72; margin-bottom: 10px;">📊 Left-to-Right Methodology</h3>
+                <p style="line-height: 1.6; margin-bottom: 10px;">For each trait, you'll be presented with descriptive performance standards:</p>
+                <ul style="margin-left: 20px; line-height: 1.6;">
+                    <li><strong>Start at B:</strong> "Meets requirements, maintains status quo"</li>
+                    <li><strong>Move to D:</strong> "Consistently produces quality results, improves unit performance"</li>
+                    <li><strong>Move to F:</strong> "Results far surpass expectations, significant impact"</li>
+                </ul>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #1e3c72; margin-bottom: 10px;">🔍 Three-Choice Decision Making</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                    <div style="background: #ffe6e6; padding: 10px; border-radius: 6px; text-align: center;">
+                        <strong style="color: #d32f2f;">Does Not Meet</strong><br>
+                        <small>Select previous grade</small>
+                    </div>
+                    <div style="background: #e8f5e8; padding: 10px; border-radius: 6px; text-align: center;">
+                        <strong style="color: #2e7d32;">Meets</strong><br>
+                        <small>Accept current standard</small>
+                    </div>
+                    <div style="background: #e3f2fd; padding: 10px; border-radius: 6px; text-align: center;">
+                        <strong style="color: #1976d2;">Surpasses</strong><br>
+                        <small>Move to next level</small>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #1e3c72; margin-bottom: 10px;">📝 Required Justification</h3>
+                <p style="line-height: 1.6;">
+                    Every marking decision requires <strong>specific justification</strong> with examples and evidence. 
+                    This ensures accountability and provides valuable feedback to the Marine being evaluated.
+                </p>
+            </div>
+
+            <div style="background: #f0f7ff; padding: 15px; border-radius: 8px; border-left: 4px solid #2196F3;">
+                <h4 style="color: #1565c0; margin-bottom: 8px;">💡 Result: Objective, Defensible Evaluations</h4>
+                <p style="line-height: 1.6; margin: 0; font-size: 14px;">
+                    By evaluating performance against established standards rather than predetermined outcomes, 
+                    this tool produces more accurate, fair, and legally defensible FITREP markings that truly reflect Marine performance.
+                </p>
+            </div>
+        </div>
+
+        <!-- Evaluation Cards -->
+        <div id="evaluationContainer"></div>
+
+        <!-- Review Card - NEW -->
+        <div class="review-card" id="reviewCard">
+            <h2 style="text-align: center; color: #1e3c72; margin-bottom: 20px;">Review and Edit Evaluations</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 30px;">
+                Review all trait evaluations below before proceeding to directed comments.
+            </p>
+            
+            <div class="review-grid" id="reviewGrid">
+                <!-- Review items will be populated by JavaScript -->
+            </div>
+            
+            <div class="review-actions">
+                <div class="button-row">
+                    <button class="btn btn-secondary" onclick="goBackToLastTrait()">← Back to Traits</button>
+                    <button class="btn btn-meets" onclick="proceedToDirectedComments()">Continue to Directed Comments</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section I Generation Card -->
+        <div class="section-i-generation-card" id="sectionIGenerationCard">
+            <h2 style="text-align: center; color: #1e3c72; margin-bottom: 20px;">Section I Comment Generation</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 30px;">
+                Based on your trait evaluations and justifications, we'll generate a professional Section I comment for your review and editing.
+            </p>
+            
+            <div class="analysis-panel">
+                <h3 style="color: #1e3c72; margin-bottom: 15px;">Evaluation Analysis</h3>
+                <div class="analysis-stats" id="analysisStats"></div>
+                <div style="text-align: center;">
+                    <span>Performance Classification: </span>
+                    <span class="performance-tier-display" id="performanceTierDisplay">Analyzing...</span>
+                </div>
+            </div>
+            
+            <!-- Grade Groups Display -->
+            <div class="grade-groups-panel" id="gradeGroupsContainer">
+                <!-- Grade groups will be populated by JavaScript -->
+            </div>
+            
+            <!-- Validation Warnings -->
+            <div class="validation-panel" id="validationWarnings">
+                <!-- Validation results will be populated by JavaScript -->
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <div class="generation-options">
+                    <button class="generation-btn primary" onclick="generateSectionIComment()">🔄 Generate Section I Comment</button>
+                    <button class="generation-btn" onclick="regenerateWithStyle('comprehensive')">📝 Comprehensive</button>
+                    <button class="generation-btn" onclick="regenerateWithStyle('concise')">⚡ Concise</button>
+                    <button class="generation-btn" onclick="regenerateWithStyle('promotion-focused')">🎖️ Promotion-Focused</button>
+                </div>
+            </div>
+            
+            <div>
+                <h3 style="color: #1e3c72; margin-bottom: 15px;">Generated Section I Comment</h3>
+                <p style="color: #666; margin-bottom: 10px; font-size: 14px;">
+                    Review and edit the generated comment below. This will be included in your final FITREP summary.
+                </p>
+                <textarea class="section-i-textarea" id="sectionITextarea" 
+                         placeholder="Click 'Generate Section I Comment' above to create a professional narrative based on your evaluations..."></textarea>
+                <div class="word-count-display" id="sectionIWordCount">0 words (Recommended: 200-400 words)</div>
+            </div>
+            
+            <div class="button-row">
+                <button class="btn btn-secondary" onclick="skipSectionI()">Skip Section I</button>
+                <button class="btn btn-meets" onclick="finalizeSectionI()">Continue to Summary</button>
+            </div>
+        </div>
+
+        <!-- Directed Comments Card -->
+        <div class="directed-comments-card" id="directedCommentsCard">
+            <h2 style="text-align: center; color: #1e3c72; margin-bottom: 20px;">Directed Comments Selection</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 30px;">
+                Select applicable directed comments that must be included in Section I per MCO 1610.7B. 
+                Click to select/deselect each comment that applies to this evaluation.
+            </p>
+            
+            <div class="directed-comments-grid" id="directedCommentsGrid"></div>
+            
+            <div class="selected-comments-section" id="selectedCommentsSection">
+                <h3 style="color: #1e3c72; margin-bottom: 20px;">Complete Selected Directed Comments</h3>
+                <p style="color: #666; margin-bottom: 20px;">Fill in the required information for each selected comment:</p>
+                <div id="selectedCommentsForm"></div>
+            </div>
+            
+            <div class="button-row">
+                <button class="btn btn-secondary" onclick="skipDirectedComments()">Skip Directed Comments</button>
+                <button class="btn btn-meets" onclick="finalizeDirectedComments()">Continue to Section I</button>
+            </div>
+        </div>
+
+        <!-- Summary Card -->
+        <div class="summary-card" id="summaryCard">
+            <h2 style="text-align: center; color: #1e3c72; margin-bottom: 20px;">FITREP Evaluation Summary</h2>
+            <div class="fitrep-average" id="fitrepAverage"></div>
+            <div id="evaluationMeta" style="text-align: center; margin: 20px 0; color: #666;"></div>
+            <div class="summary-grid" id="summaryGrid"></div>
+            <div class="export-section">
+                <div class="button-row">
+                    <button class="btn btn-export" onclick="window.print()">Print Summary</button>
+                    <button class="btn btn-export" onclick="exportToClipboard()">Copy to Clipboard</button>
+                    <button class="btn btn-export" onclick="openProfileDashboardFromLogin()">View RS Dashboard</button>
+                    <button class="btn btn-export" onclick="resetEvaluation()">Start Over</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Justification Modal -->
+    <div class="justification-modal" id="justificationModal">
+        <div class="justification-content">
+            <div class="justification-header">
+                <div class="justification-title" id="justificationTitle"></div>
+                <p>Please provide justification for this marking:</p>
+            </div>
+            
+            <div class="justification-tools">
+                <button class="tool-btn" onclick="toggleVoiceInput()" id="voiceBtn">🎤 Voice Input</button>
+            </div>
+            
+            <textarea class="justification-textarea" id="justificationText" 
+                     placeholder="Enter specific examples and evidence to support this evaluation..."></textarea>
+            
+            <div class="textarea-info">
+                <span class="word-count" id="wordCount">0 words</span>
+                <span>Minimum recommended: 30 words</span>
+            </div>
+            
+            <div class="justification-buttons">
+                <button class="btn btn-cancel" onclick="cancelJustification()">Cancel</button>
+                <button class="btn btn-save" onclick="saveJustification()">Save & Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Re-evaluation Modal -->
+    <div class="reevaluate-modal" id="reevaluateModal">
+        <div class="reevaluate-content">
+            <div class="reevaluate-header">
+                <h3 id="reevaluateTitle"></h3>
+                <p>You are re-evaluating this trait. Your current evaluation is shown below.</p>
+            </div>
+            
+            <div class="reevaluate-body">
+                <div class="current-evaluation">
+                    <h4>Current Evaluation</h4>
+                    <div class="current-eval-display" id="currentEvalDisplay"></div>
+                    <div class="current-eval-criteria" id="currentEvalCriteria"></div>
+                    <div class="current-eval-justification" id="currentEvalJustification"></div>
+                </div>
+            </div>
+            
+            <div class="reevaluate-options">
+                <h4>Choose an option:</h4>
+                <p>You can keep the current evaluation or start the trait evaluation process over.</p>
+                <div class="reevaluate-buttons">
+                    <button class="btn btn-secondary" onclick="cancelReevaluation()">Keep Current</button>
+                    <button class="btn btn-meets" onclick="startReevaluation()">Re-evaluate Trait</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Help Button -->
+    <button class="help-button" onclick="openHelpModal()" title="How This Tool Works">
+        ?
+    </button>
+
+    <!-- Help Modal -->
+    <div class="help-modal" id="helpModal">
+        <div class="help-content">
+            <button class="help-close" onclick="closeHelpModal()">&times;</button>
+            
+            <div class="setup-title" style="text-align: center; margin-bottom: 25px;">How This Tool Works</div>
+            
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #1e3c72; margin-bottom: 10px;">🎯 Unbiased Evaluation Philosophy</h3>
+                <p style="line-height: 1.6; margin-bottom: 15px;">
+                    Traditional FITREP marking often suffers from <strong>grade inflation</strong> and <strong>preconceived notions</strong>. 
+                    Evaluators frequently decide on a final grade first, then justify it backward. This tool eliminates that bias.
+                </p>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #1e3c72; margin-bottom: 10px;">📊 Left-to-Right Methodology</h3>
+                <p style="line-height: 1.6; margin-bottom: 10px;">For each trait, you'll be presented with descriptive performance standards:</p>
+                <ul style="margin-left: 20px; line-height: 1.6;">
+                    <li><strong>Start at B:</strong> "Meets requirements, maintains status quo"</li>
+                    <li><strong>Move to D:</strong> "Consistently produces quality results, improves unit performance"</li>
+                    <li><strong>Move to F:</strong> "Results far surpass expectations, significant impact"</li>
+                </ul>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #1e3c72; margin-bottom: 10px;">🔍 Three-Choice Decision Making</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                    <div style="background: #ffe6e6; padding: 10px; border-radius: 6px; text-align: center;">
+                        <strong style="color: #d32f2f;">Does Not Meet</strong><br>
+                        <small>Select previous grade</small>
+                    </div>
+                    <div style="background: #e8f5e8; padding: 10px; border-radius: 6px; text-align: center;">
+                        <strong style="color: #2e7d32;">Meets</strong><br>
+                        <small>Accept current standard</small>
+                    </div>
+                    <div style="background: #e3f2fd; padding: 10px; border-radius: 6px; text-align: center;">
+                        <strong style="color: #1976d2;">Surpasses</strong><br>
+                        <small>Move to next level</small>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #1e3c72; margin-bottom: 10px;">📝 Required Justification</h3>
+                <p style="line-height: 1.6;">
+                    Every marking decision requires <strong>specific justification</strong> with examples and evidence. 
+                    This ensures accountability and provides valuable feedback to the Marine being evaluated.
+                </p>
+            </div>
+
+            <div style="background: #f0f7ff; padding: 15px; border-radius: 8px; border-left: 4px solid #2196F3;">
+                <h4 style="color: #1565c0; margin-bottom: 8px;">💡 Result: Objective, Defensible Evaluations</h4>
+                <p style="line-height: 1.6; margin: 0; font-size: 14px;">
+                    By evaluating performance against established standards rather than predetermined outcomes, 
+                    this tool produces more accurate, fair, and legally defensible FITREP markings that truly reflect Marine performance.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fix the bottom link markup -->
+    <div style="display: flex; justify-content: center; margin: 20px 0; padding: 15px;">
+        <p style="font-size: 0.9rem; color: #ffffff; text-align: center; background: rgba(255, 255, 255, 0.1); padding: 10px 20px; border-radius: 8px; backdrop-filter: blur(10px);">
+          Follow Semper Admin on all platforms:
+          <a href="https://linktr.ee/semperadmin" target="_blank" style="color: #fbbf24; text-decoration: underline; font-weight: 600;">https://linktr.ee/semperadmin</a>
+        </p>
+    </div>
+
+    <!-- Place Profile cards INSIDE the body, above scripts -->
+    <!-- Login Card: show first -->
+    <div class="profile-card active" id="profileLoginCard">
+        <div class="profile-title">Reporting Senior Login</div>
+        <p class="profile-description">Sign in to manage saved evaluations and view your RS Dashboard.</p>
+    
+        <div class="form-group">
+            <label class="form-label">RS Rank</label>
+            <input type="text" class="form-input" id="rsRankInput" placeholder="e.g., Capt">
+        </div>
+        <div class="form-group">
+            <label class="form-label">RS Name</label>
+            <input type="text" class="form-input" id="rsNameInput" placeholder="Last, First MI">
+        </div>
+        <div class="form-group">
+            <label class="form-label">RS Email</label>
+            <input type="email" class="form-input" id="rsEmailInput" placeholder="you@example.mil">
+        </div>
+    
+        <div class="profile-actions">
+            <button class="btn btn-meets" onclick="profileLogin()">Login</button>
+            <button class="btn btn-secondary" onclick="skipProfileLogin()">Skip</button>
+        </div>
+    </div>
+    
+    <div class="profile-card" id="profileDashboardCard">
+        <div class="profile-header-section">
+            <div class="profile-info">
+                <h2 id="profileHeaderName">RS Name</h2>
+                <p id="profileHeaderEmail">rs@email</p>
+            </div>
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <span class="stat-value" id="totalEvaluations">0</span>
+                    <span class="stat-label">Saved Evaluations</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="pendingSync">0</span>
+                    <span class="stat-label">Pending Sync</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value status-dot offline"></span>
+                    <span class="stat-label" id="connectionStatus">Offline - Changes saved locally</span>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Inside the RS dashboard, place this just above the existing filters -->
+        <!-- RS Dashboard Actions -->
+        <!-- Profile actions bar: add id to Grid View for visibility control -->
+        <div class="profile-actions-bar">
+            <button class="btn btn-meets" onclick="startNewEvaluation()">+ New Evaluation</button>
+            <button class="btn btn-secondary" onclick="syncAllEvaluations()">🔄 Sync to GitHub</button>
+            <button class="btn btn-secondary" onclick="exportProfile()">📥 Export All</button>
+            <button class="btn btn-secondary" onclick="logoutProfile()">Logout</button>
+            <button class="btn btn-secondary" id="gridViewBtn" onclick="showRankSummaryView()">📊 RS Summary View</button>
+        </div>
+        
+        <!-- Rank buttons stay visible; used to select the rank -->
+        <div class="rank-filter-bar" id="rankFilterBar" style="margin: 10px 0; display: flex; flex-wrap: wrap; gap: 8px;">
+            <button class="btn btn-secondary" onclick="setRankFilter('Sgt')" data-rank="Sgt">SGT</button>
+            <button class="btn btn-secondary" onclick="setRankFilter('SSgt')" data-rank="SSgt">SSGT</button>
+            <button class="btn btn-secondary" onclick="setRankFilter('GySgt')" data-rank="GySgt">GYSGT</button>
+            <button class="btn btn-secondary" onclick="setRankFilter('MGySgt')" data-rank="MGySgt">MGySgt</button>
+            <button class="btn btn-secondary" onclick="setRankFilter('SgtMaj')" data-rank="SgtMaj">SgtMaj</button>
+            <button class="btn btn-secondary" onclick="setRankFilter('WO')" data-rank="WO">WO</button>
+            <button class="btn btn-secondary" onclick="setRankFilter('CWO2')" data-rank="CWO2">CWO2</button>
+            <button class="btn btn-secondary" onclick="setRankFilter('CWO3')" data-rank="CWO3">CWO3</button>
+            <button class="btn btn-secondary" onclick="setRankFilter('CWO4')" data-rank="CWO4">CWO4</button>
+            <button class="btn btn-secondary" onclick="setRankFilter('CWO5')" data-rank="CWO5">CWO5</button>
+            <button class="btn btn-secondary" onclick="setRankFilter('2ndLt')" data-rank="2ndLt">2ndLt</button>
+            <button class="btn btn-secondary" onclick="setRankFilter('1stLt')" data-rank="1stLt">1stLt</button>
+            <button class="btn btn-secondary" onclick="setRankFilter('Capt')" data-rank="Capt">Capt</button>
+            <button class="btn btn-secondary" onclick="setRankFilter('Maj')" data-rank="Maj">Maj</button>
+            <button class="btn btn-secondary" onclick="setRankFilter('LtCol')" data-rank="LtCol">LtCol</button>
+            <button class="btn btn-secondary" onclick="setRankFilter('Col')" data-rank="Col">Col</button>
+        </div>
+    
+        <!-- Filters bar on the dashboard -->
+        <!-- After Filters bar -->
+        <div class="evaluation-filters" id="evaluationFilters">
+            <!-- ... existing code ... -->
+            <!-- Summary container (replaces old list view) -->
+            <div class="evaluations-list" id="evaluationsList">
+                <!-- Populated by renderEvaluationsList() -->
+            </div>
+            
+            <div id="profileGridContainer" class="profile-grid-wrapper" style="display: none;">
+                <div class="profile-grid-actions">
+                    <!-- Removed Back to List button -->
+                    <!-- <button class="btn btn-secondary" onclick="toggleGridView(false)">⬅️ Back to List</button> -->
+                    <select class="btn btn-third" onchange="setGridSort(this.value)" aria-label="Sort grid">
+                        <option value="DateDesc">Ending Date ⬇</option>
+                        <option value="DateAsc">Ending Date ⬆</option>
+                        <option value="AvgDesc">Avg ⬇</option>
+                        <option value="AvgAsc">Avg ⬆</option>
+                        <option value="RvDesc">RV ⬇</option>
+                        <option value="RvAsc">RV ⬆</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="exportProfileGridCsv()">📤 Export CSV</button>
+                    <div id="rankSummaryBar" style="display:flex; gap:12px; margin-left:auto;">
+                        <span style="color:#009900; font-weight:700;">High <span id="rankHighVal">0.00</span></span>
+                        <span style="color:#FF9900; font-weight:700;">Avg <span id="rankAvgVal">0.00</span></span>
+                        <span style="color:#FF0000; font-weight:700;">Low <span id="rankLowVal">0.00</span></span>
+                        <span style="color:#000; font-weight:700;"># Rpts <span id="rankRptsVal">0</span></span>
+                    </div>
+                </div>
+                <table class="profile-grid" id="profileGrid">
+                    <thead>
+                        <tr>
+                            <th>#</th><th>Marine</th><th>Occasion</th><th>Ending Date</th>
+                            <th>Performance</th><th>Proficiency</th><th>Courage</th><th>Stress Tol.</th>
+                            <th>Initiative</th><th>Leading</th><th>Dev. Others</th><th>Set Example</th>
+                            <th>Well-Being</th><th>Comm Skills</th><th>PME</th><th>Decision</th><th>Judgement</th>
+                            <th>Avg</th><th>RV</th><th>Cum RV</th>
+                            <!-- Add missing header so columns align with data -->
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts - CRITICAL: Load data.js FIRST -->
+    <script>
+        console.log('HTML loaded successfully');
+    </script>
+    <script src="js/data.js"></script>
+    <script src="js/voice.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/validation.js"></script>
+    <script src="js/sectionI.js"></script>
+    <script src="js/directedComments.js"></script>
+    <script src="js/profile.js"></script>
+    <script src="js/evaluation.js"></script>
+    <script src="js/app.js"></script>
+    </body>
+    </html>
+
+    <!-- Save to Profile Modal: add Save & Return to Profile button -->
+    <div class="save-profile-modal" id="saveProfileModal">
+        <div class="save-profile-content">
+            <h3>Save Evaluation to Profile</h3>
+            <p>Review details and choose storage options.</p>
+
+            <div class="evaluation-preview">
+                <div class="preview-item"><strong>Marine:</strong> <span id="savePreviewMarine"></span></div>
+                <div class="preview-item"><strong>Period:</strong> <span id="savePreviewPeriod"></span></div>
+                <div class="preview-item"><strong>FITREP Average:</strong> <span id="savePreviewAverage"></span></div>
+            </div>
+
+            <div class="storage-info">
+                <div class="storage-option">
+                    <label for="evaluationOccasion"><strong>Occasion</strong></label>
+                    <select id="evaluationOccasion">
+                        <option value="Annual">Annual</option>
+                        <option value="Transfer">Transfer</option>
+                        <option value="Temporary Duty">Temporary Duty</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="storage-option">
+                    <input type="checkbox" id="saveGitHub" />
+                    <label for="saveGitHub">Sync to GitHub when online</label>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-meets" onclick="confirmSaveToProfile()">Save to Profile</button>
+                <button class="btn btn-secondary" onclick="confirmSaveToProfileAndReturn()">Save & Return to Profile</button>
+                <button class="btn btn-secondary" onclick="skipSaveToProfile()">Cancel</button>
+            </div>
+
+            <div class="offline-indicator">
+                <span class="status-dot" id="saveStatusDot"></span>
+                <span id="saveStatusText">Offline - Changes saved locally</span>
+            </div>
+        </div>
