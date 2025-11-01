@@ -649,3 +649,56 @@
                 <span id="saveStatusText">Offline - Changes saved locally</span>
             </div>
         </div>
+    </div>
+
+    <!-- GitHub Token Configuration Modal -->
+    <div class="github-config-modal" id="githubConfigModal" style="display: none;">
+        <div class="github-config-content">
+            <h3>⚙️ GitHub Sync Configuration</h3>
+
+            <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                <strong>⚠️ Security Notice:</strong>
+                <ul style="margin: 10px 0 0 20px; font-size: 14px;">
+                    <li>This stores your GitHub token in browser localStorage</li>
+                    <li>Only use on your personal device</li>
+                    <li>Do not share this device/browser with others</li>
+                    <li>For production multi-user deployments, use backend proxy</li>
+                </ul>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label"><strong>GitHub Personal Access Token (PAT)</strong></label>
+                <p style="font-size: 13px; color: #666; margin-bottom: 10px;">
+                    Create a token at: <a href="https://github.com/settings/tokens" target="_blank" style="color: #1e40af;">github.com/settings/tokens</a><br>
+                    Required scope: <code>repo</code> (full control of private repositories)
+                </p>
+                <input type="password" class="form-input" id="githubTokenInput" placeholder="ghp_..." style="font-family: monospace;">
+                <div style="margin-top: 5px;">
+                    <label style="font-size: 13px;">
+                        <input type="checkbox" id="showTokenCheckbox" onchange="toggleTokenVisibility()"> Show token
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label"><strong>Target Repository</strong></label>
+                <p style="font-size: 13px; color: #666; margin-bottom: 5px;">
+                    <code>SemperAdmin/Fitness-Report-Evaluator-Data</code> (private)
+                </p>
+            </div>
+
+            <div class="modal-actions" style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-meets" onclick="saveGitHubToken()" style="flex: 1;">💾 Save & Test Connection</button>
+                <button class="btn btn-secondary" onclick="closeGitHubConfigModal()" style="flex: 1;">Cancel</button>
+            </div>
+
+            <div id="githubConfigStatus" style="margin-top: 15px; padding: 10px; border-radius: 6px; display: none;"></div>
+
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                <p style="font-size: 13px; color: #666;">
+                    <strong>Already configured?</strong><br>
+                    <button class="btn btn-secondary" onclick="clearGitHubToken()" style="margin-top: 5px;">🗑️ Clear Stored Token</button>
+                </p>
+            </div>
+        </div>
+    </div>

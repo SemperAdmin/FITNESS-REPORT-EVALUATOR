@@ -2308,3 +2308,190 @@ async function initializeGitHubService() {
 if (typeof window !== 'undefined') {
     window.addEventListener('DOMContentLoaded', initializeGitHubService);
 }
+
+// ============================================================================
+// GitHub Token Configuration Functions
+// ============================================================================
+
+/**
+ * Open GitHub configuration modal
+ */
+function openGitHubConfigModal() {
+    const modal = document.getElementById('githubConfigModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        
+        // Clear previous input
+        const input = document.getElementById('githubTokenInput');
+        if (input) input.value = '';
+        
+        // Hide status
+        const status = document.getElementById('githubConfigStatus');
+        if (status) status.style.display = 'none';
+    }
+}
+
+/**
+ * Close GitHub configuration modal
+ */
+function closeGitHubConfigModal() {
+    const modal = document.getElementById('githubConfigModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+/**
+ * Toggle token visibility
+ */
+function toggleTokenVisibility() {
+    const input = document.getElementById('githubTokenInput');
+    const checkbox = document.getElementById('showTokenCheckbox');
+    
+    if (input && checkbox) {
+        input.type = checkbox.checked ? 'text' : 'password';
+    }
+}
+
+/**
+ * Save and test GitHub token
+ */
+async function saveGitHubToken() {
+    const input = document.getElementById('githubTokenInput');
+    const status = document.getElementById('githubConfigStatus');
+    
+    if (!input || !status) return;
+    
+    const token = input.value.trim();
+    
+    // Validate token format
+    if (!token) {
+        showConfigStatus('error', '❌ Please enter a GitHub token');
+        return;
+    }
+    
+    if (!token.startsWith('ghp_')) {
+        showConfigStatus('error', '❌ Invalid token format. Must start with "ghp_"');
+        return;
+    }
+    
+    // Show loading
+    showConfigStatus('loading', '⏳ Testing connection...');
+    
+    try {
+        // Store token
+        const stored = githubService.storeToken(token);
+        if (!stored) {
+            showConfigStatus('error', '❌ Failed to store token');
+            return;
+        }
+        
+        // Initialize service
+        githubService.initialize(token);
+        
+        // Test connection
+        const connected = await githubService.verifyConnection();
+        
+        if (connected) {
+            showConfigStatus('success', '✅ Successfully connected to GitHub!');
+            
+            // Update connection status in UI
+            updateConnectionStatus();
+            
+            // Re-initialize to ensure everything is set up
+            await initializeGitHubService();
+            
+            // Close modal after 2 seconds
+            setTimeout(() => {
+                closeGitHubConfigModal();
+            }, 2000);
+        } else {
+            showConfigStatus('error', '❌ Connection failed. Check token permissions and repository access.');
+            githubService.clearToken();
+        }
+    } catch (error) {
+        console.error('Error testing GitHub connection:', error);
+        showConfigStatus('error', `❌ Error: ${error.message}`);
+        githubService.clearToken();
+    }
+}
+
+/**
+ * Clear stored GitHub token
+ */
+function clearGitHubToken() {
+    if (confirm('Are you sure you want to clear the stored GitHub token?\n\nGitHub sync will be disabled.')) {
+        githubService.clearToken();
+        showConfigStatus('success', '✅ Token cleared');
+        updateConnectionStatus();
+        
+        setTimeout(() => {
+            closeGitHubConfigModal();
+        }, 1500);
+    }
+}
+
+/**
+ * Show status message in config modal
+ */
+function showConfigStatus(type, message) {
+    const status = document.getElementById('githubConfigStatus');
+    if (!status) return;
+    
+    status.className = type;
+    status.textContent = message;
+    status.style.display = 'block';
+}
+
+/**
+ * Update connection status indicator in UI
+ */
+function updateConnectionStatus() {
+    // Update in profile dashboard if it exists
+    const statusDot = document.querySelector('.status-dot');
+    const statusText = document.getElementById('connectionStatus');
+    
+    if (githubService.initialized) {
+        if (statusDot) {
+            statusDot.className = 'status-dot online';
+        }
+        if (statusText) {
+            statusText.textContent = 'Online - GitHub sync enabled';
+        }
+    } else {
+        if (statusDot) {
+            statusDot.className = 'status-dot offline';
+        }
+        if (statusText) {
+            statusText.textContent = 'Offline - Changes saved locally';
+        }
+    }
+}
+
+// Add button to profile dashboard for GitHub configuration
+if (typeof window !== 'undefined') {
+    window.addEventListener('DOMContentLoaded', () => {
+        // Add GitHub config button to profile actions bar if it exists
+        const actionsBar = document.querySelector('.profile-actions-bar');
+        if (actionsBar && typeof githubService !== 'undefined') {
+            // Check if button doesn't already exist
+            if (!document.getElementById('githubConfigBtn')) {
+                const configBtn = document.createElement('button');
+                configBtn.id = 'githubConfigBtn';
+                configBtn.className = 'btn btn-secondary';
+                configBtn.onclick = openGitHubConfigModal;
+                configBtn.innerHTML = githubService.hasStoredToken() ? '⚙️ GitHub Settings' : '🔗 Connect GitHub';
+                
+                // Insert before logout button
+                const logoutBtn = Array.from(actionsBar.children).find(btn => 
+                    btn.textContent.includes('Logout')
+                );
+                if (logoutBtn) {
+                    actionsBar.insertBefore(configBtn, logoutBtn);
+                } else {
+                    actionsBar.appendChild(configBtn);
+                }
+            }
+        }
+    });
+}

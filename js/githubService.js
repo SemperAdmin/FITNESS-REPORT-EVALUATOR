@@ -56,15 +56,20 @@ class GitHubDataService {
     /**
      * Get authentication token from environment
      *
-     * This is a placeholder that demonstrates different approaches:
-     * - Client-side: Would need to call a backend API
-     * - Server-side: Would read from process.env.FITREP_DATA
-     * - GitHub Actions: Available as secrets.FITREP_DATA
+     * This method tries multiple sources in order:
+     * 1. Backend API endpoint (most secure for production)
+     * 2. LocalStorage (for single-user deployments - DEVELOPMENT ONLY)
+     * 3. Environment variables (server-side only)
+     *
+     * SECURITY WARNING:
+     * - LocalStorage option is for development/single-user scenarios only
+     * - Never deploy publicly with token in localStorage
+     * - Use backend proxy for production multi-user deployments
      *
      * @returns {Promise<string|null>}
      */
     async getTokenFromEnvironment() {
-        // Approach 1: Backend API proxy (RECOMMENDED for client-side apps)
+        // Approach 1: Backend API proxy (RECOMMENDED for production)
         if (typeof window !== 'undefined') {
             try {
                 const response = await fetch('/api/github-token', {
@@ -73,21 +78,45 @@ class GitHubDataService {
                 });
                 if (response.ok) {
                     const data = await response.json();
-                    return data.token;
+                    if (data.token) {
+                        console.log('✓ Using GitHub token from backend API');
+                        return data.token;
+                    }
                 }
             } catch (error) {
-                console.warn('Could not fetch token from backend:', error);
+                // Backend not available, try other methods
+            }
+
+            // Approach 2: LocalStorage (for development/single-user only)
+            // SECURITY WARNING: Only use for personal deployments
+            try {
+                const storedToken = localStorage.getItem('github_token');
+                if (storedToken && storedToken.startsWith('ghp_')) {
+                    console.warn('⚠️ Using GitHub token from localStorage (development mode)');
+                    console.warn('⚠️ Do not deploy publicly with this configuration');
+                    return storedToken;
+                }
+            } catch (error) {
+                console.warn('Could not access localStorage:', error);
             }
         }
 
-        // Approach 2: Server-side environment variable
+        // Approach 3: Server-side environment variable
         if (typeof process !== 'undefined' && process.env) {
-            return process.env.FITREP_DATA || null;
+            const token = process.env.FITREP_DATA;
+            if (token) {
+                console.log('✓ Using GitHub token from environment variable');
+                return token;
+            }
         }
 
-        // Approach 3: GitHub Actions context
+        // Approach 4: GitHub Actions context
         if (typeof process !== 'undefined' && process.env && process.env.GITHUB_ACTIONS) {
-            return process.env.FITREP_DATA || null;
+            const token = process.env.FITREP_DATA;
+            if (token) {
+                console.log('✓ Using GitHub token from GitHub Actions');
+                return token;
+            }
         }
 
         return null;
@@ -513,6 +542,60 @@ class GitHubDataService {
 
         } catch (error) {
             console.error('Failed to verify GitHub connection:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Store GitHub token in localStorage
+     * SECURITY WARNING: Only for development/single-user deployments
+     *
+     * @param {string} token - GitHub Personal Access Token
+     * @returns {boolean} Success status
+     */
+    storeToken(token) {
+        if (!token || !token.startsWith('ghp_')) {
+            console.error('Invalid GitHub token format. Must start with "ghp_"');
+            return false;
+        }
+
+        try {
+            localStorage.setItem('github_token', token);
+            console.log('✓ GitHub token stored in localStorage');
+            console.warn('⚠️ Token is stored locally in your browser');
+            console.warn('⚠️ Do not share this browser/device with others');
+            return true;
+        } catch (error) {
+            console.error('Failed to store token:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Remove stored GitHub token
+     */
+    clearToken() {
+        try {
+            localStorage.removeItem('github_token');
+            this.token = null;
+            this.initialized = false;
+            console.log('✓ GitHub token cleared');
+            return true;
+        } catch (error) {
+            console.error('Failed to clear token:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Check if token is currently stored
+     * @returns {boolean}
+     */
+    hasStoredToken() {
+        try {
+            const token = localStorage.getItem('github_token');
+            return !!(token && token.startsWith('ghp_'));
+        } catch (error) {
             return false;
         }
     }
