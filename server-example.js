@@ -93,9 +93,9 @@ app.get('/api/github/file/*', requireAuth, async (req, res) => {
     try {
         const filePath = req.params[0]; // Gets everything after /file/
 
-        // Validate path
-        if (!filePath || filePath.includes('..')) {
-            return res.status(400).json({ error: 'Invalid file path' });
+        // Validate path with strict regex to prevent path traversal
+        if (!filePath || !/^users\/[a-zA-Z0-9_]+\.json$/.test(filePath)) {
+            return res.status(400).json({ error: 'Invalid file path - must match users/[username].json format' });
         }
 
         const url = `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}`;
@@ -142,10 +142,10 @@ app.put('/api/github/file', requireAuth, async (req, res) => {
             });
         }
 
-        // Validate path
-        if (filePath.includes('..') || !filePath.startsWith('users/')) {
+        // Validate path with strict regex to prevent path traversal
+        if (!filePath || !/^users\/[a-zA-Z0-9_]+\.json$/.test(filePath)) {
             return res.status(400).json({
-                error: 'Invalid file path - must be in users/ directory'
+                error: 'Invalid file path - must be in users/ directory and match expected format'
             });
         }
 
@@ -232,74 +232,96 @@ app.post('/api/github/save-user-data', requireAuth, async (req, res) => {
         };
 
         const jsonContent = JSON.stringify(dataToSave, null, 2);
-
-        // Base64 encode
         const base64Content = Buffer.from(jsonContent, 'utf-8').toString('base64');
 
         // Generate filename
         const fileName = userData.rsEmail.split('@')[0].replace(/[^a-zA-Z0-9]/g, '_') + '.json';
         const filePath = `users/${fileName}`;
 
-        // Check if file exists
-        let existingSha = null;
-        const checkUrl = `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}`;
+        const maxRetries = 3;
 
-        const checkResponse = await fetch(checkUrl, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${GITHUB_TOKEN}`,
-                'Accept': 'application/vnd.github.v3+json',
-                'User-Agent': 'FITREP-Evaluator-Proxy'
+        // Retry loop to handle race conditions (409 Conflict)
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                // Check if file exists (get SHA for update)
+                const checkUrl = `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}`;
+
+                const checkResponse = await fetch(checkUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'User-Agent': 'FITREP-Evaluator-Proxy'
+                    }
+                });
+
+                let existingSha = null;
+                if (checkResponse.ok) {
+                    const existing = await checkResponse.json();
+                    existingSha = existing.sha;
+                }
+
+                // Create/update file
+                const commitMessage = existingSha
+                    ? `Update profile for ${userData.rsName} - ${new Date().toISOString()}`
+                    : `Create profile for ${userData.rsName} - ${new Date().toISOString()}`;
+
+                const saveUrl = `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}`;
+                const body = {
+                    message: commitMessage,
+                    content: base64Content,
+                    branch: 'main'
+                };
+
+                if (existingSha) {
+                    body.sha = existingSha;
+                }
+
+                const saveResponse = await fetch(saveUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'FITREP-Evaluator-Proxy'
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (!saveResponse.ok) {
+                    const error = await saveResponse.json();
+
+                    // Handle 409 Conflict (file was updated between SHA fetch and write)
+                    if (saveResponse.status === 409 && attempt < maxRetries - 1) {
+                        console.warn(`GitHub save conflict detected (attempt ${attempt + 1}/${maxRetries}). Retrying...`);
+                        // Exponential backoff: 100ms, 200ms, 400ms
+                        await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, attempt)));
+                        continue; // Retry with fresh SHA
+                    }
+
+                    // Not a 409 or retries exhausted
+                    throw new Error(error.message || 'GitHub API error');
+                }
+
+                const result = await saveResponse.json();
+
+                return res.json({
+                    success: true,
+                    filePath,
+                    fileName,
+                    isUpdate: !!existingSha,
+                    commitSha: result.commit.sha,
+                    message: existingSha ? 'Profile updated successfully' : 'Profile created successfully',
+                    retries: attempt
+                });
+
+            } catch (error) {
+                // If this is the last retry, re-throw to outer catch
+                if (attempt === maxRetries - 1) {
+                    throw error;
+                }
             }
-        });
-
-        if (checkResponse.ok) {
-            const existing = await checkResponse.json();
-            existingSha = existing.sha;
         }
-
-        // Create/update file
-        const commitMessage = existingSha
-            ? `Update profile for ${userData.rsName} - ${new Date().toISOString()}`
-            : `Create profile for ${userData.rsName} - ${new Date().toISOString()}`;
-
-        const saveUrl = `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}`;
-        const body = {
-            message: commitMessage,
-            content: base64Content,
-            branch: 'main'
-        };
-
-        if (existingSha) {
-            body.sha = existingSha;
-        }
-
-        const saveResponse = await fetch(saveUrl, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${GITHUB_TOKEN}`,
-                'Accept': 'application/vnd.github.v3+json',
-                'Content-Type': 'application/json',
-                'User-Agent': 'FITREP-Evaluator-Proxy'
-            },
-            body: JSON.stringify(body)
-        });
-
-        if (!saveResponse.ok) {
-            const error = await saveResponse.json();
-            throw new Error(error.message || 'GitHub API error');
-        }
-
-        const result = await saveResponse.json();
-
-        res.json({
-            success: true,
-            filePath,
-            fileName,
-            isUpdate: !!existingSha,
-            commitSha: result.commit.sha,
-            message: existingSha ? 'Profile updated successfully' : 'Profile created successfully'
-        });
 
     } catch (error) {
         console.error('Error saving user data:', error);
