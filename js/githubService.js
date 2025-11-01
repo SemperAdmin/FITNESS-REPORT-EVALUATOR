@@ -123,14 +123,17 @@ class GitHubDataService {
     /**
      * Encode string content to Base64
      * Required by GitHub Contents API
+     * Uses modern TextEncoder API for robust Unicode support
      *
      * @param {string} content - Content to encode
      * @returns {string} Base64 encoded string
      */
     encodeToBase64(content) {
-        // Browser environment
-        if (typeof btoa !== 'undefined') {
-            return btoa(unescape(encodeURIComponent(content)));
+        // Browser environment with modern APIs
+        if (typeof TextEncoder !== 'undefined' && typeof btoa !== 'undefined') {
+            const bytes = new TextEncoder().encode(content);
+            const binaryString = Array.from(bytes, byte => String.fromCodePoint(byte)).join('');
+            return btoa(binaryString);
         }
 
         // Node.js environment
@@ -143,14 +146,17 @@ class GitHubDataService {
 
     /**
      * Decode Base64 string to regular string
+     * Uses modern TextDecoder API for robust Unicode support
      *
      * @param {string} base64Content - Base64 encoded string
      * @returns {string} Decoded string
      */
     decodeFromBase64(base64Content) {
-        // Browser environment
-        if (typeof atob !== 'undefined') {
-            return decodeURIComponent(escape(atob(base64Content)));
+        // Browser environment with modern APIs
+        if (typeof TextDecoder !== 'undefined' && typeof atob !== 'undefined') {
+            const binaryString = atob(base64Content);
+            const bytes = Uint8Array.from(binaryString, m => m.codePointAt(0));
+            return new TextDecoder().decode(bytes);
         }
 
         // Node.js environment
@@ -159,19 +165,6 @@ class GitHubDataService {
         }
 
         throw new Error('No Base64 decoding method available');
-    }
-
-    /**
-     * Generate unique filename for user data
-     * Format: [email_username]_[timestamp].json
-     *
-     * @param {string} userEmail - User's email address
-     * @returns {string} Unique filename
-     */
-    generateFileName(userEmail) {
-        const emailPrefix = userEmail.split('@')[0].replace(/[^a-zA-Z0-9]/g, '_');
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-        return `${emailPrefix}_${timestamp}.json`;
     }
 
     /**
@@ -204,8 +197,7 @@ class GitHubDataService {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${this.token}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json'
+                    'Accept': 'application/vnd.github.v3+json'
                 }
             });
 
@@ -214,17 +206,17 @@ class GitHubDataService {
             }
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(`GitHub API error: ${error.message || response.statusText}`);
+                const errorData = await response.json();
+                const error = new Error(`GitHub API error: ${errorData.message || response.statusText}`);
+                error.status = response.status;
+                error.response = response;
+                throw error;
             }
 
             const data = await response.json();
             return data.sha;
 
         } catch (error) {
-            if (error.message.includes('404')) {
-                return null;
-            }
             throw error;
         }
     }
@@ -273,8 +265,11 @@ class GitHubDataService {
             });
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(`GitHub API error: ${error.message || response.statusText}`);
+                const errorData = await response.json();
+                const error = new Error(`GitHub API error: ${errorData.message || response.statusText}`);
+                error.status = response.status;
+                error.response = response;
+                throw error;
             }
 
             const result = await response.json();
@@ -314,8 +309,11 @@ class GitHubDataService {
             }
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(`GitHub API error: ${error.message || response.statusText}`);
+                const errorData = await response.json();
+                const error = new Error(`GitHub API error: ${errorData.message || response.statusText}`);
+                error.status = response.status;
+                error.response = response;
+                throw error;
             }
 
             const data = await response.json();
@@ -333,7 +331,7 @@ class GitHubDataService {
 
     /**
      * Save user profile and evaluations to GitHub
-     * Main method to persist data
+     * Main method to persist data with retry logic for race conditions
      *
      * @param {Object} userData - User profile and evaluation data
      * @param {string} userData.rsName - Reporting Senior name
@@ -357,44 +355,62 @@ class GitHubDataService {
                 throw new Error('User email is required');
             }
 
-            // Generate filename
             const fileName = this.generateUserFileName(userData.rsEmail);
             const filePath = `users/${fileName}`;
+            const maxRetries = 3;
 
-            // Serialize data to JSON
-            const jsonContent = this.serializeData(userData);
+            // Retry loop to handle race conditions (409 Conflict)
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                try {
+                    // Serialize data to JSON
+                    const jsonContent = this.serializeData(userData);
 
-            // Check if file exists (get SHA for update)
-            const existingSha = await this.getFileSha(filePath);
+                    // Check if file exists (get SHA for update)
+                    const existingSha = await this.getFileSha(filePath);
 
-            // Create commit message
-            const commitMessage = existingSha
-                ? `Update profile for ${userData.rsName} - ${new Date().toISOString()}`
-                : `Create profile for ${userData.rsName} - ${new Date().toISOString()}`;
+                    // Create commit message
+                    const commitMessage = existingSha
+                        ? `Update profile for ${userData.rsName} - ${new Date().toISOString()}`
+                        : `Create profile for ${userData.rsName} - ${new Date().toISOString()}`;
 
-            // Create or update file
-            const result = await this.createOrUpdateFile(
-                filePath,
-                jsonContent,
-                commitMessage,
-                existingSha
-            );
+                    // Create or update file
+                    const result = await this.createOrUpdateFile(
+                        filePath,
+                        jsonContent,
+                        commitMessage,
+                        existingSha
+                    );
 
-            return {
-                success: true,
-                filePath: filePath,
-                fileName: fileName,
-                isUpdate: !!existingSha,
-                commitSha: result.commit.sha,
-                message: existingSha ? 'Profile updated successfully' : 'Profile created successfully'
-            };
+                    return {
+                        success: true,
+                        filePath: filePath,
+                        fileName: fileName,
+                        isUpdate: !!existingSha,
+                        commitSha: result.commit.sha,
+                        message: existingSha ? 'Profile updated successfully' : 'Profile created successfully',
+                        retries: attempt
+                    };
+
+                } catch (error) {
+                    // Handle 409 Conflict (file was updated between SHA fetch and write)
+                    if (error.status === 409 && attempt < maxRetries - 1) {
+                        console.warn(`GitHub save conflict detected (attempt ${attempt + 1}/${maxRetries}). Retrying...`);
+                        // Exponential backoff: 100ms, 200ms, 400ms
+                        await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, attempt)));
+                        continue; // Retry with fresh SHA
+                    }
+                    // Re-throw if not a 409 or retries exhausted
+                    throw error;
+                }
+            }
 
         } catch (error) {
             console.error('Error saving user data to GitHub:', error);
             return {
                 success: false,
                 error: error.message,
-                message: `Failed to save data: ${error.message}`
+                message: `Failed to save data: ${error.message}`,
+                status: error.status
             };
         }
     }
