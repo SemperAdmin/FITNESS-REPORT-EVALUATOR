@@ -359,11 +359,12 @@ class GitHubDataService {
             const filePath = `users/${fileName}`;
             const maxRetries = 3;
 
+            // Serialize data to JSON
+            const jsonContent = this.serializeData(userData);
+
             // Retry loop to handle race conditions (409 Conflict)
             for (let attempt = 0; attempt < maxRetries; attempt++) {
                 try {
-                    // Serialize data to JSON
-                    const jsonContent = this.serializeData(userData);
 
                     // Check if file exists (get SHA for update)
                     const existingSha = await this.getFileSha(filePath);
