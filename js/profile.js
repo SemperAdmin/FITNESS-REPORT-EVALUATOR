@@ -1220,7 +1220,7 @@ function openProfileDashboardFromLogin() {
         return;
     }
 
-    // Make stored profile the active session
+    // Hydrate session from storage snapshot
     window.currentProfile = {
         rsName: stored.rsName,
         rsEmail: stored.rsEmail,
@@ -1231,7 +1231,7 @@ function openProfileDashboardFromLogin() {
     window.profileEvaluations = stored.evaluations || [];
 
     // Ensure routing sees this as an explicit user action
-    localStorage.setItem('login_source', 'form');
+    sessionStorage.setItem('login_source', 'form');
     
     // Render via the existing dashboard entrypoint
     showProfileDashboard();
@@ -1241,15 +1241,20 @@ function openProfileDashboardFromLogin() {
 function showProfileDashboardOnLoad() {
     const loginCard = document.getElementById('profileLoginCard');
     const dashboardCard = document.getElementById('profileDashboardCard');
+    const modeCard = document.getElementById('modeSelectionCard');
     if (!loginCard || !dashboardCard) return;
 
     // Only auto-open if the user explicitly logged in in THIS SESSION
     const hasProfile = localStorage.getItem('has_profile') === 'true';
     const loginSource = sessionStorage.getItem('login_source'); // session-scoped, not persistent
     if (!hasProfile || loginSource !== 'form') {
-        // Keep the login page visible by default and hide Setup
-        loginCard.style.display = 'block';
+        // Default to Mode Selection on initial load
+        if (modeCard) { modeCard.classList.add('active'); modeCard.style.display = 'block'; }
+        loginCard.classList.remove('active');
+        loginCard.style.display = 'none';
+        dashboardCard.classList.remove('active');
         dashboardCard.style.display = 'none';
+        
         const setupCard = document.getElementById('setupCard');
         if (setupCard) {
             setupCard.classList.remove('active');
@@ -1802,15 +1807,20 @@ function openProfileDashboardFromLogin() {
 function showProfileDashboardOnLoad() {
     const loginCard = document.getElementById('profileLoginCard');
     const dashboardCard = document.getElementById('profileDashboardCard');
+    const modeCard = document.getElementById('modeSelectionCard');
     if (!loginCard || !dashboardCard) return;
 
     // Only auto-open if the user explicitly logged in in THIS SESSION
     const hasProfile = localStorage.getItem('has_profile') === 'true';
     const loginSource = sessionStorage.getItem('login_source'); // session-scoped, not persistent
     if (!hasProfile || loginSource !== 'form') {
-        // Keep the login page visible by default and hide Setup
-        loginCard.style.display = 'block';
+        // Default to Mode Selection on initial load
+        if (modeCard) { modeCard.classList.add('active'); modeCard.style.display = 'block'; }
+        loginCard.classList.remove('active');
+        loginCard.style.display = 'none';
+        dashboardCard.classList.remove('active');
         dashboardCard.style.display = 'none';
+        
         const setupCard = document.getElementById('setupCard');
         if (setupCard) {
             setupCard.classList.remove('active');
