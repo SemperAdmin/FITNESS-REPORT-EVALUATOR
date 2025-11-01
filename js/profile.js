@@ -142,15 +142,25 @@ function showProfileDashboard() {
 }
 
 function renderProfileHeader() {
-    document.getElementById('profileHeaderName').textContent =
-        `${currentProfile.rsRank} ${currentProfile.rsName}`;
-    document.getElementById('profileHeaderEmail').textContent =
-        currentProfile.rsEmail;
-    document.getElementById('totalEvaluations').textContent =
-        profileEvaluations.length;
+    const nameEl = document.getElementById('profileHeaderName');
+    const emailEl = document.getElementById('profileHeaderEmail');
+    const totalEl = document.getElementById('totalEvaluations');
+    const pendingEl = document.getElementById('pendingSync');
+
+    if (nameEl && currentProfile) {
+        nameEl.textContent = `${currentProfile.rsRank} ${currentProfile.rsName}`;
+    }
+    if (emailEl && currentProfile) {
+        emailEl.textContent = currentProfile.rsEmail;
+    }
+    if (totalEl) {
+        totalEl.textContent = String(profileEvaluations.length);
+    }
 
     const pending = profileEvaluations.filter(e => e.syncStatus !== 'synced').length;
-    document.getElementById('pendingSync').textContent = pending;
+    if (pendingEl) {
+        pendingEl.textContent = String(pending);
+    }
 }
 
 // Set rank summary sort preference
@@ -370,8 +380,11 @@ function showSaveToProfilePrompt() {
 }
 
 async function confirmSaveToProfile() {
-    const occasion = document.getElementById('evaluationOccasion').value;
-    const shouldSyncToGitHub = document.getElementById('saveGitHub').checked;
+    const occasionEl = document.getElementById('evaluationOccasion');
+    const occasion = occasionEl ? occasionEl.value : (evaluationMeta?.occasionType || '');
+
+    const githubEl = document.getElementById('saveGitHub');
+    const shouldSyncToGitHub = !!(githubEl && githubEl.checked);
 
     // If not logged in, create a local offline profile to persist the evaluation
     if (!currentProfile) {
@@ -412,7 +425,7 @@ async function confirmSaveToProfile() {
         sectionIComments: evaluationMeta.sectionIComments || '',
         directedComments: evaluationMeta.directedComments || '',
         savedToProfile: true,
-        syncStatus: 'pending'
+        syncStatus: shouldSyncToGitHub ? 'pending' : 'local-only'
     };
 
     // Save to localStorage
@@ -439,7 +452,11 @@ async function confirmSaveToProfile() {
         }
     }
 
-    document.getElementById('saveProfileModal').classList.remove('active');
+    // Hide modal safely
+    const modal = document.getElementById('saveProfileModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
     alert('Evaluation saved to your profile!');
 }
 
@@ -1370,7 +1387,8 @@ function mergeEvaluations(localEvaluations = [], remoteEvaluations = []) {
 
     const put = (ev) => {
         if (!ev) return;
-        const id = ev.evaluationId || `${ev.marineInfo?.name || ''}|${ev.completedDate || ev.lastUpdated || ''}`;
+        // Use a stronger composite key when evaluationId is missing to reduce collisions
+        const id = ev.evaluationId || `composite:${ev.marineInfo?.name || ''}|${ev.marineInfo?.rank || ''}|${ev.occasion || ''}|${ev.marineInfo?.evaluationPeriod?.from || ''}`;
         const prev = byId.get(id);
         const ts = new Date(ev.lastUpdated || ev.completedDate || 0).getTime();
         const prevTs = prev ? new Date(prev.lastUpdated || prev.completedDate || 0).getTime() : -1;
