@@ -316,10 +316,9 @@ app.post('/api/github/save-user-data', requireAuth, async (req, res) => {
                 });
 
             } catch (error) {
-                // If this is the last retry, re-throw to outer catch
-                if (attempt === maxRetries - 1) {
-                    throw error;
-                }
+                // Re-throw immediately - only 409 errors are retriable (handled above)
+                // Network errors, 500 errors, etc. should fail fast
+                throw error;
             }
         }
 
