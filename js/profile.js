@@ -3,205 +3,6 @@ let currentProfile = null;
 let profileEvaluations = [];
 let syncQueue = [];
 
-// RV Calculation Cache
-let rvCache = {
-    data: null,
-    timestamp: 0,
-    evaluationCount: 0
-};
-
-// Get RV metrics with caching (5-second cache)
-function getCachedRvMetrics(evaluations) {
-    const now = Date.now();
-    const cacheValid = rvCache.data &&
-                      rvCache.evaluationCount === evaluations.length &&
-                      (now - rvCache.timestamp) < 5000; // 5 second cache
-
-    if (cacheValid) {
-        return rvCache.data;
-    }
-
-    // Cache miss - compute fresh
-    const { rvMap, cumRvMap } = computeAllRvMetrics(evaluations);
-
-    // Update cache
-    rvCache.data = { rvMap, cumRvMap };
-    rvCache.timestamp = now;
-    rvCache.evaluationCount = evaluations.length;
-
-    return rvCache.data;
-}
-
-// Invalidate cache when evaluations change
-function invalidateRvCache() {
-    rvCache.data = null;
-    rvCache.timestamp = 0;
-    rvCache.evaluationCount = 0;
-}
-
-// Storage Quota Monitoring
-function estimateStorageUsed() {
-    let total = 0;
-    try {
-        for (let key in localStorage) {
-            if (localStorage.hasOwnProperty(key)) {
-                total += (localStorage[key].length + key.length) * 2; // UTF-16 encoding
-            }
-        }
-    } catch (e) {
-        console.warn('Failed to estimate storage:', e);
-        return 0;
-    }
-    return total / (1024 * 1024); // Convert to MB
-}
-
-function checkStorageQuota() {
-    const usedMB = estimateStorageUsed();
-    const quotaMB = 5; // Most browsers limit to ~5-10MB
-    const percentUsed = (usedMB / quotaMB) * 100;
-
-    // Update storage indicator if it exists
-    const indicator = document.getElementById('storageIndicator');
-    if (indicator) {
-        indicator.textContent = `${usedMB.toFixed(2)} MB / ${quotaMB} MB`;
-
-        if (percentUsed > 90) {
-            indicator.style.color = '#d32f2f';
-            indicator.title = 'Storage almost full!';
-        } else if (percentUsed > 75) {
-            indicator.style.color = '#f57c00';
-            indicator.title = 'Storage getting full';
-        } else {
-            indicator.style.color = '#4CAF50';
-            indicator.title = 'Storage healthy';
-        }
-    }
-
-    // Show warning if approaching limit
-    if (percentUsed > 90) {
-        showNotification(
-            'Storage Almost Full',
-            'You are using ' + percentUsed.toFixed(0) + '% of available storage. Consider exporting and archiving old evaluations.',
-            'warning'
-        );
-        return false;
-    } else if (percentUsed > 75) {
-        showNotification(
-            'Storage Getting Full',
-            'You are using ' + percentUsed.toFixed(0) + '% of available storage.',
-            'info'
-        );
-    }
-
-    return true;
-}
-
-function showNotification(title, message, type = 'info') {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-        <div class="notification-header">
-            <strong>${title}</strong>
-            <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
-        </div>
-        <div class="notification-body">${message}</div>
-    `;
-
-    // Add to page
-    let container = document.getElementById('notificationContainer');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'notificationContainer';
-        container.className = 'notification-container';
-        document.body.appendChild(container);
-    }
-
-    container.appendChild(notification);
-
-    // Auto-remove after 8 seconds
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        setTimeout(() => notification.remove(), 300);
-    }, 8000);
-}
-
-// Keyboard Navigation Support
-function handleCardKeydown(event, rank) {
-    if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        applyRankFromSummary(rank);
-    }
-}
-
-// Tooltip System
-function showTooltip(event, tooltipId) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    // Hide all other tooltips
-    document.querySelectorAll('.tooltip-content.active').forEach(t => {
-        if (t.id !== tooltipId) t.classList.remove('active');
-    });
-
-    const tooltip = document.getElementById(tooltipId);
-    if (!tooltip) return;
-
-    // Position tooltip near the button
-    const button = event.currentTarget;
-    const rect = button.getBoundingClientRect();
-    tooltip.style.top = (rect.bottom + 8) + 'px';
-    tooltip.style.left = rect.left + 'px';
-
-    // Toggle tooltip
-    tooltip.classList.toggle('active');
-
-    // Close on click outside
-    if (tooltip.classList.contains('active')) {
-        setTimeout(() => {
-            document.addEventListener('click', function closeTooltip(e) {
-                if (!tooltip.contains(e.target) && !button.contains(e.target)) {
-                    tooltip.classList.remove('active');
-                    document.removeEventListener('click', closeTooltip);
-                }
-            });
-        }, 10);
-    }
-}
-
-// Mode Selection Functions
-function startStandaloneMode() {
-    const modeCard = document.getElementById('modeSelectionCard');
-    if (modeCard) {
-        modeCard.classList.remove('active');
-        modeCard.style.display = 'none';
-    }
-
-    // Skip profile login and go straight to setup
-    skipProfileLogin();
-}
-
-function showProfileLogin() {
-    const modeCard = document.getElementById('modeSelectionCard');
-    const loginCard = document.getElementById('profileLoginCard');
-
-    if (modeCard) {
-        modeCard.classList.remove('active');
-        modeCard.style.display = 'none';
-    }
-
-    if (loginCard) {
-        loginCard.classList.add('active');
-        loginCard.style.display = 'block';
-    }
-
-    // Hide app chrome
-    const header = document.querySelector('.header');
-    const warning = document.getElementById('dataWarning');
-    if (header) header.style.display = 'none';
-    if (warning) warning.style.display = 'none';
-}
-
 // Profile Authentication
 async function profileLogin() {
     const rank = document.getElementById('rsRankInput').value.trim();
@@ -294,26 +95,6 @@ let selectedRankFilter = '';
 function applyRankFromSummary(rank) {
     setRankFilter(rank);
     toggleGridView(true);
-    updateBreadcrumb(rank);
-}
-
-// Update breadcrumb navigation
-function updateBreadcrumb(context) {
-    const separator = document.getElementById('breadcrumbSeparator');
-    const current = document.getElementById('breadcrumbCurrent');
-
-    if (context) {
-        // Show breadcrumb with context
-        if (separator) separator.style.display = 'inline';
-        if (current) {
-            current.style.display = 'inline';
-            current.textContent = `${context} Detailed View`;
-        }
-    } else {
-        // Hide breadcrumb context (dashboard home)
-        if (separator) separator.style.display = 'none';
-        if (current) current.style.display = 'none';
-    }
 }
 
 // Show RS Summary (main page) and clear any active rank filter
@@ -326,9 +107,6 @@ function showRankSummaryView() {
 
     // Re-render the summary list to reflect full dataset
     renderEvaluationsList();
-
-    // Clear breadcrumb
-    updateBreadcrumb(null);
 
     // Optional: scroll to top for dashboard feel
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -375,10 +153,7 @@ function renderProfileHeader() {
         profileEvaluations.length;
 
     const pending = profileEvaluations.filter(e => e.syncStatus !== 'synced').length;
-    // Removed pendingSync display as sync is not implemented
-
-    // Check and update storage quota
-    checkStorageQuota();
+    document.getElementById('pendingSync').textContent = pending;
 }
 
 // Set rank summary sort preference
@@ -475,13 +250,7 @@ function renderEvaluationsList() {
     const cardsHtml = rows.map(r => {
         const pct = Math.round(((r.avg - globalLow) / spread) * 100);
         return `
-            <button
-                class="rank-summary-card"
-                onclick="applyRankFromSummary('${r.rank}')"
-                onkeydown="handleCardKeydown(event, '${r.rank}')"
-                tabindex="0"
-                aria-label="View ${r.rank} evaluations: ${r.count} reports, average ${r.avg.toFixed(2)}"
-                title="Open ${r.rank} grid">
+            <button class="rank-summary-card" onclick="applyRankFromSummary('${r.rank}')" title="Open ${r.rank} grid">
                 <div class="rank-chip">${r.rank}</div>
                 <div class="metric-group">
                     <div class="metric">
@@ -595,18 +364,16 @@ function showSaveToProfilePrompt() {
     document.getElementById('savePreviewPeriod').textContent =
         `${evaluationMeta.fromDate} to ${evaluationMeta.toDate}`;
     document.getElementById('savePreviewAverage').textContent = calculateFitrepAverage();
+
+    // New: prefill occasion from setup if available
+    const occSel = document.getElementById('evaluationOccasion');
+    if (occSel && evaluationMeta.occasionType) {
+        occSel.value = evaluationMeta.occasionType;
+    }
 }
 
 async function confirmSaveToProfile() {
-    // Check storage quota before saving
-    const hasSpace = checkStorageQuota();
-    if (!hasSpace) {
-        const proceed = confirm('Storage is almost full. Do you want to continue saving? Consider exporting old data first.');
-        if (!proceed) return;
-    }
-
-    // Use occasion type captured during setup (not from modal, as we removed that field)
-    const occasion = evaluationMeta.occasionType || 'Not Specified';
+    const occasion = document.getElementById('evaluationOccasion').value;
     const shouldSyncToGitHub = document.getElementById('saveGitHub').checked;
 
     // If not logged in, create a local offline profile to persist the evaluation
@@ -989,7 +756,8 @@ function renderProfileGrid() {
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    const { rvMap, cumRvMap } = getCachedRvMetrics(profileEvaluations);
+    const rvMap = computeRvValues(profileEvaluations);
+    const cumRvMap = computeCumulativeRv(profileEvaluations, rvMap);
 
     // Define evals, apply filters, then sort
     const evals = [...getFilteredEvaluations()];
@@ -1087,16 +855,68 @@ function getTraitGrades(evaluation) {
     return map;
 }
 
-// Optimized: Compute both RV and Cumulative RV in a single pass
-function computeAllRvMetrics(evals) {
+function computeRvValues(evals) {
+    // Excel-style RV @ Proc:
+    // If at least 3 evaluations exist with ending date <= current,
+    // RV = MAX(80, 90 + 10 * (FitRep - AVG) / (MAX - AVG)), otherwise "N/A".
     const rvMap = new Map();
-    const cumRvMap = new Map();
+    if (!Array.isArray(evals) || evals.length === 0) return rvMap;
 
-    if (!Array.isArray(evals) || evals.length === 0) {
-        return { rvMap, cumRvMap };
-    }
+    // Helper: safely parse fitrep average to a number
+    const getScore = (e) => {
+        const n = parseFloat(e.fitrepAverage || '0');
+        return Number.isFinite(n) ? n : 0;
+    };
 
-    // Helper functions
+    // Convert evaluation period end to timestamp
+    const getEndTs = (e) => {
+        const s = e.marineInfo?.evaluationPeriod?.to || '';
+        const d = new Date(s);
+        return Number.isFinite(d.getTime()) ? d.getTime() : 0;
+    };
+
+    // Pre-sort by date for efficient window filtering
+    const byDateAsc = [...evals].sort((a, b) => getEndTs(a) - getEndTs(b));
+
+    byDateAsc.forEach(currentEval => {
+        const currentEnd = getEndTs(currentEval);
+        // Window: all evals with end <= current end
+        const window = byDateAsc.filter(e => getEndTs(e) <= currentEnd);
+        if (window.length < 3) {
+            rvMap.set(currentEval.evaluationId, 'N/A');
+            return;
+        }
+        const scores = window.map(getScore).filter(Number.isFinite);
+        const avg = scores.reduce((s, x) => s + x, 0) / scores.length;
+        const max = Math.max(...scores);
+        const cur = getScore(currentEval);
+
+        let rv;
+        const denom = max - avg;
+        if (!Number.isFinite(avg) || !Number.isFinite(max) || denom === 0) {
+            rv = 90; // fallback when spread is zero
+        } else {
+            rv = 90 + 10 * ((cur - avg) / denom);
+        }
+        rv = Math.max(80, Math.round(rv));
+        rvMap.set(currentEval.evaluationId, rv);
+    });
+
+    return rvMap;
+}
+
+function computeCumulativeRv(evals, rvMap) {
+    // Cum RV (Excel-style):
+    // =IF([@[FitRep Score]]=0,80,
+    //   IF(COUNTIF(T>0)>=3, MAX(80, 90 + 10 * ([FitRep] - AVG(T>0)) / (MAX(T) - AVG(T>0))), "N/A")
+    // )
+    // Window is all evaluations with end date <= current record's end date.
+    const byDateAsc = [...evals].sort((a, b) => {
+        const aTs = new Date(a.marineInfo?.evaluationPeriod?.to || a.completedDate || 0).getTime();
+        const bTs = new Date(b.marineInfo?.evaluationPeriod?.to || b.completedDate || 0).getTime();
+        return aTs - bTs;
+    });
+
     const getScore = (e) => {
         const n = parseFloat(e.fitrepAverage || '0');
         return Number.isFinite(n) ? n : 0;
@@ -1108,70 +928,44 @@ function computeAllRvMetrics(evals) {
         return Number.isFinite(d.getTime()) ? d.getTime() : 0;
     };
 
-    // Pre-sort by date once
-    const byDateAsc = [...evals].sort((a, b) => getEndTs(a) - getEndTs(b));
+    const cumMap = new Map();
 
-    // Single pass computation
-    byDateAsc.forEach((currentEval, idx) => {
+    byDateAsc.forEach(currentEval => {
         const currentEnd = getEndTs(currentEval);
+        const window = byDateAsc.filter(e => getEndTs(e) <= currentEnd);
+
         const curScore = getScore(currentEval);
-
-        // Window: all evaluations up to and including current
-        const window = byDateAsc.slice(0, idx + 1);
-        const scores = window.map(getScore).filter(Number.isFinite);
-
-        // Compute RV (per-evaluation metric)
-        if (window.length < 3) {
-            rvMap.set(currentEval.evaluationId, 'N/A');
-        } else {
-            const avg = scores.reduce((s, x) => s + x, 0) / scores.length;
-            const max = Math.max(...scores);
-            const denom = max - avg;
-
-            let rv;
-            if (!Number.isFinite(avg) || !Number.isFinite(max) || denom === 0) {
-                rv = 90; // fallback when spread is zero
-            } else {
-                rv = 90 + 10 * ((curScore - avg) / denom);
-            }
-            rv = Math.max(80, Math.round(rv));
-            rvMap.set(currentEval.evaluationId, rv);
-        }
-
-        // Compute Cumulative RV (running average)
         if (curScore === 0) {
-            cumRvMap.set(currentEval.evaluationId, 80);
-        } else {
-            const nonZeroScores = scores.filter(s => s > 0);
-            if (nonZeroScores.length < 3) {
-                cumRvMap.set(currentEval.evaluationId, 'N/A');
-            } else {
-                const avg = nonZeroScores.reduce((sum, s) => sum + s, 0) / nonZeroScores.length;
-                const max = Math.max(...nonZeroScores);
-                const denom = max - avg;
-
-                let rv;
-                if (denom === 0 || !Number.isFinite(denom)) {
-                    rv = 90;
-                } else {
-                    rv = 90 + 10 * ((curScore - avg) / denom);
-                }
-                rv = Math.max(80, Math.round(rv));
-                cumRvMap.set(currentEval.evaluationId, rv);
-            }
+            // IF([@[FitRep Score]] = 0, 80, ...)
+            cumMap.set(currentEval.evaluationId, 80);
+            return;
         }
+
+        const scores = window.map(getScore).filter(s => s > 0);
+        if (scores.length < 3) {
+            // IF(COUNTIF(T>0) < 3, "N/A")
+            cumMap.set(currentEval.evaluationId, 'N/A');
+            return;
+        }
+
+        const avg = scores.reduce((sum, s) => sum + s, 0) / scores.length;
+        const max = Math.max(...scores);
+        const denom = max - avg;
+
+        let rv;
+        if (denom === 0 || !Number.isFinite(denom)) {
+            // When max == avg, avoid divide-by-zero; choose neutral 90
+            rv = 90;
+        } else {
+            rv = 90 + 10 * ((curScore - avg) / denom);
+        }
+
+        // MAX(80, ...)
+        rv = Math.max(80, Math.round(rv));
+        cumMap.set(currentEval.evaluationId, rv);
     });
 
-    return { rvMap, cumRvMap };
-}
-
-// Legacy wrapper functions for backward compatibility
-function computeRvValues(evals) {
-    return computeAllRvMetrics(evals).rvMap;
-}
-
-function computeCumulativeRv(evals, rvMap) {
-    return computeAllRvMetrics(evals).cumRvMap;
+    return cumMap;
 }
 
 function badgeForRv(rv) {
@@ -1328,10 +1122,10 @@ function capitalize(s) {
 
 // Add: CSV export based on current render order
 function exportProfileGridCsv() {
-    try {
-        const { rvMap, cumRvMap } = getCachedRvMetrics(profileEvaluations);
+    const rvMap = computeRvValues(profileEvaluations);
+    const cumRvMap = computeCumulativeRv(profileEvaluations, rvMap);
 
-        const evals = [...profileEvaluations];
+    const evals = [...profileEvaluations];
     evals.sort((a, b) => {
         const avgA = parseFloat(a.fitrepAverage || '0');
         const avgB = parseFloat(b.fitrepAverage || '0');
@@ -1398,24 +1192,14 @@ function exportProfileGridCsv() {
         .map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
         .join('\r\n');
 
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        const dateStr = new Date().toISOString().slice(0, 10);
-        a.download = `RS_Profile_Grid_${dateStr}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-
-        showNotification('Export Successful', 'Grid exported as CSV', 'success');
-    } catch (error) {
-        console.error('Export failed:', error);
-        showNotification(
-            'Export Failed',
-            'Failed to export CSV: ' + error.message,
-            'error'
-        );
-    }
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const dateStr = new Date().toISOString().slice(0, 10);
+    a.download = `RS_Profile_Grid_${dateStr}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
 // Show Dashboard directly from the login card
@@ -1544,63 +1328,15 @@ function loadEvaluationsFromLocal(profileKey) {
 function saveEvaluationsToLocal(profileKey, evaluations) {
     try {
         localStorage.setItem(`evaluations:${profileKey}`, JSON.stringify(evaluations));
-        invalidateRvCache(); // Invalidate cache when data changes
     } catch (err) {
-        console.error('saveEvaluationsToLocal failed:', err);
-        if (err.name === 'QuotaExceededError') {
-            showNotification(
-                'Storage Full',
-                'Cannot save evaluation - storage quota exceeded. Please export and delete old evaluations.',
-                'error'
-            );
-        } else {
-            showNotification(
-                'Save Failed',
-                'Failed to save evaluation: ' + err.message,
-                'error'
-            );
-        }
-        throw err; // Re-throw so caller knows it failed
+        console.warn('saveEvaluationsToLocal failed:', err);
     }
 }
 
-// GitHub integration using githubService
+// Optional GitHub integration stubs (safe no-ops)
 async function fetchProfileFromGitHub(profileKey) {
-    // Extract email from profile key format: "rs:name|email"
-    const email = profileKey.split('|')[1];
-    if (!email) {
-        console.warn('Invalid profile key format');
-        return null;
-    }
-
-    // Check if GitHub service is available and initialized
-    if (typeof githubService === 'undefined' || !githubService.initialized) {
-        console.log('GitHub service not initialized, skipping remote fetch');
-        return null;
-    }
-
-    try {
-        const userData = await githubService.loadUserData(email);
-        if (!userData) {
-            console.log('No profile found on GitHub for:', email);
-            return null;
-        }
-
-        // Convert GitHub data format to local profile format
-        return {
-            rsName: userData.profile.rsName,
-            rsEmail: userData.profile.rsEmail,
-            rsRank: userData.profile.rsRank,
-            totalEvaluations: userData.evaluations?.length || 0,
-            evaluationFiles: [],
-            lastUpdated: userData.lastUpdated,
-            evaluations: userData.evaluations || []
-        };
-
-    } catch (error) {
-        console.error('Error fetching profile from GitHub:', error);
-        return null;
-    }
+    // No GitHub configured; return null to keep app fully offline-capable
+    return null;
 }
 
 function mergeProfiles(local, remote) {
@@ -1616,34 +1352,8 @@ function mergeProfiles(local, remote) {
 }
 
 async function syncEvaluationToGitHub(evaluation) {
-    // Check if GitHub service is available and initialized
-    if (typeof githubService === 'undefined' || !githubService.initialized) {
-        console.log('GitHub service not initialized, sync skipped');
-        return false;
-    }
-
-    try {
-        const userEmail = evaluation.rsInfo.email;
-        if (!userEmail) {
-            console.warn('No user email in evaluation, cannot sync');
-            return false;
-        }
-
-        // Save evaluation using GitHub service
-        const result = await githubService.saveEvaluation(evaluation, userEmail);
-
-        if (result.success) {
-            console.log('Evaluation synced to GitHub:', result.message);
-            return true;
-        } else {
-            console.error('Failed to sync evaluation:', result.message);
-            return false;
-        }
-
-    } catch (error) {
-        console.error('Error syncing evaluation to GitHub:', error);
-        return false;
-    }
+    // Stubbed; return false to indicate not synced
+    return false;
 }
 
 // Control visibility of dashboard filters and Grid View based on rank selection
@@ -1760,7 +1470,8 @@ function renderProfileGrid() {
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    const { rvMap, cumRvMap } = getCachedRvMetrics(profileEvaluations);
+    const rvMap = computeRvValues(profileEvaluations);
+    const cumRvMap = computeCumulativeRv(profileEvaluations, rvMap);
 
     // Define evals, apply filters, then sort
     const evals = [...getFilteredEvaluations()];
@@ -1941,10 +1652,10 @@ function capitalize(s) {
 
 // Add: CSV export based on current render order
 function exportProfileGridCsv() {
-    try {
-        const { rvMap, cumRvMap } = getCachedRvMetrics(profileEvaluations);
+    const rvMap = computeRvValues(profileEvaluations);
+    const cumRvMap = computeCumulativeRv(profileEvaluations, rvMap);
 
-        const evals = [...profileEvaluations];
+    const evals = [...profileEvaluations];
     evals.sort((a, b) => {
         const avgA = parseFloat(a.fitrepAverage || '0');
         const avgB = parseFloat(b.fitrepAverage || '0');
@@ -2004,24 +1715,14 @@ function exportProfileGridCsv() {
         .map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
         .join('\r\n');
 
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        const dateStr = new Date().toISOString().slice(0, 10);
-        a.download = `RS_Profile_Grid_${dateStr}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-
-        showNotification('Export Successful', 'Grid exported as CSV', 'success');
-    } catch (error) {
-        console.error('Export failed:', error);
-        showNotification(
-            'Export Failed',
-            'Failed to export CSV: ' + error.message,
-            'error'
-        );
-    }
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const dateStr = new Date().toISOString().slice(0, 10);
+    a.download = `RS_Profile_Grid_${dateStr}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
 function toggleGridDetails(btn) {
@@ -2174,63 +1875,15 @@ function loadEvaluationsFromLocal(profileKey) {
 function saveEvaluationsToLocal(profileKey, evaluations) {
     try {
         localStorage.setItem(`evaluations:${profileKey}`, JSON.stringify(evaluations));
-        invalidateRvCache(); // Invalidate cache when data changes
     } catch (err) {
-        console.error('saveEvaluationsToLocal failed:', err);
-        if (err.name === 'QuotaExceededError') {
-            showNotification(
-                'Storage Full',
-                'Cannot save evaluation - storage quota exceeded. Please export and delete old evaluations.',
-                'error'
-            );
-        } else {
-            showNotification(
-                'Save Failed',
-                'Failed to save evaluation: ' + err.message,
-                'error'
-            );
-        }
-        throw err; // Re-throw so caller knows it failed
+        console.warn('saveEvaluationsToLocal failed:', err);
     }
 }
 
-// GitHub integration using githubService
+// Optional GitHub integration stubs (safe no-ops)
 async function fetchProfileFromGitHub(profileKey) {
-    // Extract email from profile key format: "rs:name|email"
-    const email = profileKey.split('|')[1];
-    if (!email) {
-        console.warn('Invalid profile key format');
-        return null;
-    }
-
-    // Check if GitHub service is available and initialized
-    if (typeof githubService === 'undefined' || !githubService.initialized) {
-        console.log('GitHub service not initialized, skipping remote fetch');
-        return null;
-    }
-
-    try {
-        const userData = await githubService.loadUserData(email);
-        if (!userData) {
-            console.log('No profile found on GitHub for:', email);
-            return null;
-        }
-
-        // Convert GitHub data format to local profile format
-        return {
-            rsName: userData.profile.rsName,
-            rsEmail: userData.profile.rsEmail,
-            rsRank: userData.profile.rsRank,
-            totalEvaluations: userData.evaluations?.length || 0,
-            evaluationFiles: [],
-            lastUpdated: userData.lastUpdated,
-            evaluations: userData.evaluations || []
-        };
-
-    } catch (error) {
-        console.error('Error fetching profile from GitHub:', error);
-        return null;
-    }
+    // No GitHub configured; return null to keep app fully offline-capable
+    return null;
 }
 
 function mergeProfiles(local, remote) {
@@ -2246,65 +1899,6 @@ function mergeProfiles(local, remote) {
 }
 
 async function syncEvaluationToGitHub(evaluation) {
-    // Check if GitHub service is available and initialized
-    if (typeof githubService === 'undefined' || !githubService.initialized) {
-        console.log('GitHub service not initialized, sync skipped');
-        return false;
-    }
-
-    try {
-        const userEmail = evaluation.rsInfo.email;
-        if (!userEmail) {
-            console.warn('No user email in evaluation, cannot sync');
-            return false;
-        }
-
-        // Save evaluation using GitHub service
-        const result = await githubService.saveEvaluation(evaluation, userEmail);
-
-        if (result.success) {
-            console.log('Evaluation synced to GitHub:', result.message);
-            return true;
-        } else {
-            console.error('Failed to sync evaluation:', result.message);
-            return false;
-        }
-
-    } catch (error) {
-        console.error('Error syncing evaluation to GitHub:', error);
-        return false;
-    }
-}
-// Initialize GitHub Service on page load
-async function initializeGitHubService() {
-    if (typeof githubService === 'undefined') {
-        console.log('GitHub service not loaded, sync features will be unavailable');
-        return;
-    }
-
-    try {
-        // Attempt to get token from environment
-        const token = await githubService.getTokenFromEnvironment();
-
-        if (token) {
-            githubService.initialize(token);
-            const isConnected = await githubService.verifyConnection();
-
-            if (isConnected) {
-                console.log('✓ GitHub sync available');
-                updateConnectionStatus(); // Update UI status indicator
-            } else {
-                console.warn('GitHub token found but connection failed');
-            }
-        } else {
-            console.log('No GitHub token available - operating in offline mode');
-        }
-    } catch (error) {
-        console.error('Failed to initialize GitHub service:', error);
-    }
-}
-
-// Call initialization on page load
-if (typeof window !== 'undefined') {
-    window.addEventListener('DOMContentLoaded', initializeGitHubService);
+    // Stubbed; return false to indicate not synced
+    return false;
 }
