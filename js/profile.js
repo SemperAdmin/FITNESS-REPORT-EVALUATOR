@@ -20,41 +20,12 @@ async function profileLogin() {
     let profile = loadProfileFromLocal(profileKey);
     let localEvaluations = loadEvaluationsFromLocal(profileKey);
 
-    // Auto-load remote via GitHub on login (if configured)
-    if (navigator.onLine && typeof githubService !== 'undefined') {
-        try {
-            const token = await githubService.getTokenFromEnvironment?.();
-            if (token) {
-                githubService.initialize(token);
-                const connected = await githubService.verifyConnection?.();
-                if (connected) {
-                    const remote = await githubService.loadUserData(email);
-                    if (remote) {
-                        const remoteProfile = {
-                            rsName: remote.profile?.rsName || name,
-                            rsEmail: email,
-                            rsRank: remote.profile?.rsRank || rank,
-                            totalEvaluations: Array.isArray(remote.evaluations) ? remote.evaluations.length : (profile?.totalEvaluations || 0),
-                            lastUpdated: new Date().toISOString(),
-                            evaluationFiles: (profile?.evaluationFiles || [])
-                        };
+    // Try remote; merge and persist for offline-first UX
+    const { profile: mergedProfile, evaluations: mergedEvaluations } =
+        await tryLoadRemoteProfile(email, name, rank, profileKey, profile, localEvaluations);
 
-                        // Merge profiles and prefer remote evaluations when present
-                        profile = mergeProfiles(profile, remoteProfile);
-                        if (Array.isArray(remote.evaluations) && remote.evaluations.length) {
-                            localEvaluations = remote.evaluations;
-                        }
-
-                        // Persist merged result locally for offline-first UX
-                        saveProfileToLocal(profileKey, profile);
-                        saveEvaluationsToLocal(profileKey, localEvaluations);
-                    }
-                }
-            }
-        } catch (error) {
-            console.warn('GitHub load on login failed; continuing with local data:', error);
-        }
-    }
+    profile = mergedProfile;
+    localEvaluations = mergedEvaluations;
 
     // Create new profile if none exists
     if (!profile) {
@@ -547,6 +518,12 @@ function startNewEvaluation() {
     if (setup) {
         setup.classList.add('active');
         setup.style.display = 'block';
+    }
+
+    // Prefill RS name from profile when logged in
+    const evaluatorInput = document.getElementById('evaluatorNameInput');
+    if (evaluatorInput && window.currentProfile?.rsName) {
+        evaluatorInput.value = window.currentProfile.rsName;
     }
 
     // Align navigation state if available
@@ -1385,6 +1362,70 @@ function mergeProfiles(local, remote) {
 async function syncEvaluationToGitHub(evaluation) {
     // Stubbed; return false to indicate not synced
     return false;
+}
+
+// Helper function to merge evaluations with conflict resolution
+function mergeEvaluations(localEvaluations = [], remoteEvaluations = []) {
+    const byId = new Map();
+
+    const put = (ev) => {
+        if (!ev) return;
+        const id = ev.evaluationId || `${ev.marineInfo?.name || ''}|${ev.completedDate || ev.lastUpdated || ''}`;
+        const prev = byId.get(id);
+        const ts = new Date(ev.lastUpdated || ev.completedDate || 0).getTime();
+        const prevTs = prev ? new Date(prev.lastUpdated || prev.completedDate || 0).getTime() : -1;
+        if (!prev || ts >= prevTs) {
+            byId.set(id, ev);
+        }
+    };
+
+    localEvaluations.forEach(put);
+    remoteEvaluations.forEach(put);
+
+    return Array.from(byId.values());
+}
+
+// Helper function to try loading remote profile data
+async function tryLoadRemoteProfile(email, name, rank, profileKey, localProfile, localEvaluations) {
+    if (!navigator.onLine || typeof githubService === 'undefined') {
+        return { profile: localProfile, evaluations: localEvaluations };
+    }
+
+    try {
+        const token = await githubService.getTokenFromEnvironment?.();
+        if (!token) return { profile: localProfile, evaluations: localEvaluations };
+
+        githubService.initialize(token);
+        const connected = await githubService.verifyConnection?.();
+        if (!connected) return { profile: localProfile, evaluations: localEvaluations };
+
+        const remote = await githubService.loadUserData(email);
+        if (!remote) return { profile: localProfile, evaluations: localEvaluations };
+
+        const remoteProfile = {
+            rsName: remote.profile?.rsName || name,
+            rsEmail: email,
+            rsRank: remote.profile?.rsRank || rank,
+            totalEvaluations: Array.isArray(remote.evaluations) ? remote.evaluations.length : (localProfile?.totalEvaluations || 0),
+            lastUpdated: new Date().toISOString(),
+            evaluationFiles: (localProfile?.evaluationFiles || [])
+        };
+
+        const mergedProfile = mergeProfiles(localProfile, remoteProfile);
+        const mergedEvaluations = mergeEvaluations(
+            Array.isArray(localEvaluations) ? localEvaluations : [],
+            Array.isArray(remote.evaluations) ? remote.evaluations : []
+        );
+
+        // Persist merged result locally for offline-first UX
+        saveProfileToLocal(profileKey, mergedProfile);
+        saveEvaluationsToLocal(profileKey, mergedEvaluations);
+
+        return { profile: mergedProfile, evaluations: mergedEvaluations };
+    } catch (error) {
+        console.warn('GitHub load on login failed; continuing with local data:', error);
+        return { profile: localProfile, evaluations: localEvaluations };
+    }
 }
 
 // Control visibility of dashboard filters and Grid View based on rank selection
