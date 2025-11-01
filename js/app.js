@@ -11,8 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const setup = document.getElementById('setupCard');
     if (login) login.classList.add('active');
     if (setup) {
-        setup.classList.remove('active');
-        setup.style.display = 'none';
+        setup.classList.remove('active'); // rely on CSS to control visibility
     }
 
     // Let the dashboard loader decide whether to auto-open based on login_source flag
