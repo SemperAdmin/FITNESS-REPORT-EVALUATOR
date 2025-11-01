@@ -6,31 +6,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize voice recognition
     initializeVoiceRecognition();
 
-    // Show mode selection card first; hide all other cards
-    const modeCard = document.getElementById('modeSelectionCard');
+    // Always show RS Login first; hide Setup card on initial load
     const login = document.getElementById('profileLoginCard');
-    const dashboard = document.getElementById('profileDashboardCard');
     const setup = document.getElementById('setupCard');
-
-    // Ensure mode selection is visible
-    if (modeCard) {
-        modeCard.classList.add('active');
-        modeCard.style.display = 'block';
-    }
-
-    // Hide profile-related cards until user selects mode
-    if (login) {
-        login.classList.remove('active');
-        login.style.display = 'none';
-    }
-    if (dashboard) {
-        dashboard.classList.remove('active');
-        dashboard.style.display = 'none';
-    }
+    if (login) login.classList.add('active');
     if (setup) {
         setup.classList.remove('active');
         setup.style.display = 'none';
     }
+
+    // Let the dashboard loader decide whether to auto-open based on login_source flag
+    setTimeout(() => {
+        if (typeof showProfileDashboardOnLoad === 'function') {
+            try { showProfileDashboardOnLoad(); } catch (e) { console.warn('showProfileDashboardOnLoad failed:', e); }
+        }
+    }, 0);
 
     // Set default dates
     const today = new Date();
@@ -87,4 +77,9 @@ function showRSLoginFirst() {
         login.style.display = 'block'; // critical: show the login card
     }
     window.scrollTo({ top: 0, behavior: 'auto' });
+}
+
+// Backward-compat alias for legacy/cached markup
+function showProfileLogin() {
+    return showRSLoginFirst();
 }
