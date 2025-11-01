@@ -1632,7 +1632,7 @@ function renderProfileGrid() {
             <td class="grade-cell">${traitGrades['Professional Military Education'] || '-'}</td>
             <td class="grade-cell">${traitGrades['Decision Making'] || '-'}</td>
             <td class="grade-cell">${traitGrades['Judgement'] || '-'}</td>
-            <td class="grade-cell">${traitGrades['Evals'] || 'H'}</td>
+            <td class="grade-cell">${traitGrades['Evals']}</td>
             <td class="avg-cell">${avg}</td>
             <td>${badgeForRv(rv)}</td>
             <td>${badgeForRv(cumRv)}</td>
@@ -1687,17 +1687,31 @@ function getTraitGrades(evaluation) {
             'PME'
         ],
         'Decision Making': ['Decision Making Ability', 'Decision Making'],
-        'Judgement': ['Judgment', 'Judgement']
+        'Judgement': ['Judgment', 'Judgement'],
+        // Section H aliases
+        'Evals': ['Evaluations', 'Fulfillment of Evaluation Responsibilities', 'Section H', 'Evals']
     };
 
     const items = Object.values(evaluation.traitEvaluations || {});
     const map = {};
     Object.keys(columnAliases).forEach(colName => {
-        const synonyms = columnAliases[colName];
-        const found = items.find(t =>
-            synonyms.some(alias => (t.trait || '').trim().toLowerCase() === alias.toLowerCase())
-        );
-        map[colName] = found ? (found.grade || '-') : '-';
+        const synonyms = columnAliases[colName].map(s => s.toLowerCase());
+        let findPredicate;
+        let defaultValue;
+
+        if (colName === 'Evals') {
+            findPredicate = t =>
+                synonyms.includes((t.trait || '').trim().toLowerCase()) ||
+                synonyms.includes((t.section || '').trim().toLowerCase());
+            defaultValue = 'H';
+        } else {
+            findPredicate = t =>
+                synonyms.includes((t.trait || '').trim().toLowerCase());
+            defaultValue = '-';
+        }
+
+        const found = items.find(findPredicate);
+        map[colName] = found ? (found.grade || defaultValue) : defaultValue;
     });
     return map;
 }
@@ -1806,7 +1820,7 @@ function exportProfileGridCsv() {
             traits['Professional Military Education'] || '-',
             traits['Decision Making'] || '-',
             traits['Judgement'] || '-',
-            traits['Evals'] || 'H',
+            traits['Evals'],
             avg,
             rv,
             cumRv
