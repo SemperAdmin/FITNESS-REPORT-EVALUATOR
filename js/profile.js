@@ -860,17 +860,27 @@ function getTraitGrades(evaluation) {
             'PME'
         ],
         'Decision Making': ['Decision Making Ability', 'Decision Making'],
-        'Judgement': ['Judgment', 'Judgement']
+        'Judgement': ['Judgment', 'Judgement'],
+        'Evals': ['Evaluations', 'Fulfillment of Evaluation Responsibilities'] // Section H
     };
 
     const items = Object.values(evaluation.traitEvaluations || {});
     const map = {};
     Object.keys(columnAliases).forEach(colName => {
-        const synonyms = columnAliases[colName];
-        const found = items.find(t =>
-            synonyms.some(alias => (t.trait || '').trim().toLowerCase() === alias.toLowerCase())
-        );
-        map[colName] = found ? (found.grade || '-') : '-';
+        const synonyms = columnAliases[colName].map(s => s.toLowerCase());
+        let found;
+        if (colName === 'Evals') {
+            found = items.find(t =>
+                synonyms.includes((t.trait || '').trim().toLowerCase()) ||
+                synonyms.includes((t.section || '').trim().toLowerCase())
+            );
+            map[colName] = found ? (found.grade || 'H') : 'H';
+        } else {
+            found = items.find(t =>
+                synonyms.includes((t.trait || '').trim().toLowerCase())
+            );
+            map[colName] = found ? (found.grade || '-') : '-';
+        }
     });
     return map;
 }
@@ -1622,6 +1632,7 @@ function renderProfileGrid() {
             <td class="grade-cell">${traitGrades['Professional Military Education'] || '-'}</td>
             <td class="grade-cell">${traitGrades['Decision Making'] || '-'}</td>
             <td class="grade-cell">${traitGrades['Judgement'] || '-'}</td>
+            <td class="grade-cell">${traitGrades['Evals'] || 'H'}</td>
             <td class="avg-cell">${avg}</td>
             <td>${badgeForRv(rv)}</td>
             <td>${badgeForRv(cumRv)}</td>
@@ -1767,7 +1778,7 @@ function exportProfileGridCsv() {
     const headers = [
         'Rank','Marine','Occasion','Ending Date',
         'Performance','Proficiency','Courage','Stress Tolerance','Initiative','Leading','Developing Others',
-        'Setting the Example','Well-Being/Health','Communication Skills','PME','Decision Making','Judgement',
+        'Setting the Example','Well-Being/Health','Communication Skills','PME','Decision Making','Judgement','Eval',
         'Avg','RV','Cum RV'
     ];
 
@@ -1795,6 +1806,7 @@ function exportProfileGridCsv() {
             traits['Professional Military Education'] || '-',
             traits['Decision Making'] || '-',
             traits['Judgement'] || '-',
+            traits['Evals'] || 'H',
             avg,
             rv,
             cumRv
