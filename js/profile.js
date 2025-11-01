@@ -1564,10 +1564,43 @@ function saveEvaluationsToLocal(profileKey, evaluations) {
     }
 }
 
-// Optional GitHub integration stubs (safe no-ops)
+// GitHub integration using githubService
 async function fetchProfileFromGitHub(profileKey) {
-    // No GitHub configured; return null to keep app fully offline-capable
-    return null;
+    // Extract email from profile key format: "rs:name|email"
+    const email = profileKey.split('|')[1];
+    if (!email) {
+        console.warn('Invalid profile key format');
+        return null;
+    }
+
+    // Check if GitHub service is available and initialized
+    if (typeof githubService === 'undefined' || !githubService.initialized) {
+        console.log('GitHub service not initialized, skipping remote fetch');
+        return null;
+    }
+
+    try {
+        const userData = await githubService.loadUserData(email);
+        if (!userData) {
+            console.log('No profile found on GitHub for:', email);
+            return null;
+        }
+
+        // Convert GitHub data format to local profile format
+        return {
+            rsName: userData.profile.rsName,
+            rsEmail: userData.profile.rsEmail,
+            rsRank: userData.profile.rsRank,
+            totalEvaluations: userData.evaluations?.length || 0,
+            evaluationFiles: [],
+            lastUpdated: userData.lastUpdated,
+            evaluations: userData.evaluations || []
+        };
+
+    } catch (error) {
+        console.error('Error fetching profile from GitHub:', error);
+        return null;
+    }
 }
 
 function mergeProfiles(local, remote) {
@@ -1583,8 +1616,34 @@ function mergeProfiles(local, remote) {
 }
 
 async function syncEvaluationToGitHub(evaluation) {
-    // Stubbed; return false to indicate not synced
-    return false;
+    // Check if GitHub service is available and initialized
+    if (typeof githubService === 'undefined' || !githubService.initialized) {
+        console.log('GitHub service not initialized, sync skipped');
+        return false;
+    }
+
+    try {
+        const userEmail = evaluation.rsInfo.email;
+        if (!userEmail) {
+            console.warn('No user email in evaluation, cannot sync');
+            return false;
+        }
+
+        // Save evaluation using GitHub service
+        const result = await githubService.saveEvaluation(evaluation, userEmail);
+
+        if (result.success) {
+            console.log('Evaluation synced to GitHub:', result.message);
+            return true;
+        } else {
+            console.error('Failed to sync evaluation:', result.message);
+            return false;
+        }
+
+    } catch (error) {
+        console.error('Error syncing evaluation to GitHub:', error);
+        return false;
+    }
 }
 
 // Control visibility of dashboard filters and Grid View based on rank selection
@@ -2135,10 +2194,43 @@ function saveEvaluationsToLocal(profileKey, evaluations) {
     }
 }
 
-// Optional GitHub integration stubs (safe no-ops)
+// GitHub integration using githubService
 async function fetchProfileFromGitHub(profileKey) {
-    // No GitHub configured; return null to keep app fully offline-capable
-    return null;
+    // Extract email from profile key format: "rs:name|email"
+    const email = profileKey.split('|')[1];
+    if (!email) {
+        console.warn('Invalid profile key format');
+        return null;
+    }
+
+    // Check if GitHub service is available and initialized
+    if (typeof githubService === 'undefined' || !githubService.initialized) {
+        console.log('GitHub service not initialized, skipping remote fetch');
+        return null;
+    }
+
+    try {
+        const userData = await githubService.loadUserData(email);
+        if (!userData) {
+            console.log('No profile found on GitHub for:', email);
+            return null;
+        }
+
+        // Convert GitHub data format to local profile format
+        return {
+            rsName: userData.profile.rsName,
+            rsEmail: userData.profile.rsEmail,
+            rsRank: userData.profile.rsRank,
+            totalEvaluations: userData.evaluations?.length || 0,
+            evaluationFiles: [],
+            lastUpdated: userData.lastUpdated,
+            evaluations: userData.evaluations || []
+        };
+
+    } catch (error) {
+        console.error('Error fetching profile from GitHub:', error);
+        return null;
+    }
 }
 
 function mergeProfiles(local, remote) {
@@ -2154,6 +2246,65 @@ function mergeProfiles(local, remote) {
 }
 
 async function syncEvaluationToGitHub(evaluation) {
-    // Stubbed; return false to indicate not synced
-    return false;
+    // Check if GitHub service is available and initialized
+    if (typeof githubService === 'undefined' || !githubService.initialized) {
+        console.log('GitHub service not initialized, sync skipped');
+        return false;
+    }
+
+    try {
+        const userEmail = evaluation.rsInfo.email;
+        if (!userEmail) {
+            console.warn('No user email in evaluation, cannot sync');
+            return false;
+        }
+
+        // Save evaluation using GitHub service
+        const result = await githubService.saveEvaluation(evaluation, userEmail);
+
+        if (result.success) {
+            console.log('Evaluation synced to GitHub:', result.message);
+            return true;
+        } else {
+            console.error('Failed to sync evaluation:', result.message);
+            return false;
+        }
+
+    } catch (error) {
+        console.error('Error syncing evaluation to GitHub:', error);
+        return false;
+    }
+}
+// Initialize GitHub Service on page load
+async function initializeGitHubService() {
+    if (typeof githubService === 'undefined') {
+        console.log('GitHub service not loaded, sync features will be unavailable');
+        return;
+    }
+
+    try {
+        // Attempt to get token from environment
+        const token = await githubService.getTokenFromEnvironment();
+
+        if (token) {
+            githubService.initialize(token);
+            const isConnected = await githubService.verifyConnection();
+
+            if (isConnected) {
+                console.log('✓ GitHub sync available');
+                updateConnectionStatus(); // Update UI status indicator
+            } else {
+                console.warn('GitHub token found but connection failed');
+            }
+        } else {
+            console.log('No GitHub token available - operating in offline mode');
+        }
+    } catch (error) {
+        console.error('Failed to initialize GitHub service:', error);
+    }
+}
+
+// Call initialization on page load
+if (typeof window !== 'undefined') {
+    window.addEventListener('DOMContentLoaded', initializeGitHubService);
 }
