@@ -52,7 +52,9 @@ async function profileLogin() {
     localStorage.setItem('current_profile', JSON.stringify(currentProfile));
     localStorage.setItem('current_evaluations', JSON.stringify(profileEvaluations));
     localStorage.setItem('has_profile', 'true');
-    localStorage.setItem('login_source', 'form'); // mark session as form login
+    
+    // Session-only: mark that the user explicitly logged in this session
+    sessionStorage.setItem('login_source', 'form');
 
     showProfileDashboard();
 }
@@ -1241,9 +1243,9 @@ function showProfileDashboardOnLoad() {
     const dashboardCard = document.getElementById('profileDashboardCard');
     if (!loginCard || !dashboardCard) return;
 
-    // Only auto-open if the user explicitly logged in via the form
+    // Only auto-open if the user explicitly logged in in THIS SESSION
     const hasProfile = localStorage.getItem('has_profile') === 'true';
-    const loginSource = localStorage.getItem('login_source');
+    const loginSource = sessionStorage.getItem('login_source'); // session-scoped, not persistent
     if (!hasProfile || loginSource !== 'form') {
         // Keep the login page visible by default and hide Setup
         loginCard.style.display = 'block';
@@ -1802,9 +1804,9 @@ function showProfileDashboardOnLoad() {
     const dashboardCard = document.getElementById('profileDashboardCard');
     if (!loginCard || !dashboardCard) return;
 
-    // Only auto-open if the user explicitly logged in via the form
+    // Only auto-open if the user explicitly logged in in THIS SESSION
     const hasProfile = localStorage.getItem('has_profile') === 'true';
-    const loginSource = localStorage.getItem('login_source');
+    const loginSource = sessionStorage.getItem('login_source'); // session-scoped, not persistent
     if (!hasProfile || loginSource !== 'form') {
         // Keep the login page visible by default and hide Setup
         loginCard.style.display = 'block';
