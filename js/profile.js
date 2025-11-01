@@ -16,19 +16,43 @@ async function profileLogin() {
 
     const profileKey = generateProfileKey(name, email);
 
-    // Check localStorage first
+    // Load local first
     let profile = loadProfileFromLocal(profileKey);
+    let localEvaluations = loadEvaluationsFromLocal(profileKey);
 
-    // Try to fetch from GitHub if online
-    if (navigator.onLine) {
+    // Auto-load remote via GitHub on login (if configured)
+    if (navigator.onLine && typeof githubService !== 'undefined') {
         try {
-            const githubProfile = await fetchProfileFromGitHub(profileKey);
-            if (githubProfile) {
-                profile = mergeProfiles(profile, githubProfile);
-                saveProfileToLocal(profileKey, profile);
+            const token = await githubService.getTokenFromEnvironment?.();
+            if (token) {
+                githubService.initialize(token);
+                const connected = await githubService.verifyConnection?.();
+                if (connected) {
+                    const remote = await githubService.loadUserData(email);
+                    if (remote) {
+                        const remoteProfile = {
+                            rsName: remote.profile?.rsName || name,
+                            rsEmail: email,
+                            rsRank: remote.profile?.rsRank || rank,
+                            totalEvaluations: Array.isArray(remote.evaluations) ? remote.evaluations.length : (profile?.totalEvaluations || 0),
+                            lastUpdated: new Date().toISOString(),
+                            evaluationFiles: (profile?.evaluationFiles || [])
+                        };
+
+                        // Merge profiles and prefer remote evaluations when present
+                        profile = mergeProfiles(profile, remoteProfile);
+                        if (Array.isArray(remote.evaluations) && remote.evaluations.length) {
+                            localEvaluations = remote.evaluations;
+                        }
+
+                        // Persist merged result locally for offline-first UX
+                        saveProfileToLocal(profileKey, profile);
+                        saveEvaluationsToLocal(profileKey, localEvaluations);
+                    }
+                }
             }
         } catch (error) {
-            console.log('GitHub fetch failed, using local data:', error);
+            console.warn('GitHub load on login failed; continuing with local data:', error);
         }
     }
 
@@ -40,13 +64,13 @@ async function profileLogin() {
             rsRank: rank,
             createdDate: new Date().toISOString(),
             lastUpdated: new Date().toISOString(),
-            totalEvaluations: 0,
+            totalEvaluations: Array.isArray(localEvaluations) ? localEvaluations.length : 0,
             evaluationFiles: []
         };
     }
 
     currentProfile = profile;
-    profileEvaluations = loadEvaluationsFromLocal(profileKey);
+    profileEvaluations = localEvaluations;
 
     // Persist snapshot for auto-load
     localStorage.setItem('current_profile', JSON.stringify(currentProfile));
