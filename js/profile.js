@@ -727,40 +727,6 @@ function duplicateEvaluation(evalId) {
     renderEvaluationsList();
 }
 
-// Add RS Grid View rendering
-// Grid view toggle is already present
-function toggleGridView(show) {
-    const list = document.getElementById('evaluationsList');
-    const grid = document.getElementById('profileGridContainer');
-    const header = document.querySelector('.header');
-    const filters = document.querySelector('.evaluation-filters');
-    const rankBar = document.getElementById('rankFilterBar');
-    const actionsBar = document.querySelector('.profile-actions-bar');
-    const statsHeader = document.querySelector('.profile-header-section');
-
-    if (!list || !grid) return;
-    if (show) {
-        list.style.display = 'none';
-        grid.style.display = 'block';
-        grid.classList.add('fullscreen');        // Full-page mode
-        if (header) header.style.display = 'none';
-        if (filters) filters.style.display = 'none';
-        if (rankBar) rankBar.style.display = 'none';
-        if (actionsBar) actionsBar.style.display = 'none';
-        if (statsHeader) statsHeader.style.display = 'none';
-        renderProfileGrid();
-    } else {
-        grid.style.display = 'none';
-        grid.classList.remove('fullscreen');     // Exit full-page mode
-        list.style.display = 'flex';
-        if (header) header.style.display = '';
-        // Restore dashboard UI states
-        if (rankBar) rankBar.style.display = '';
-        if (actionsBar) actionsBar.style.display = '';
-        if (statsHeader) statsHeader.style.display = '';
-        if (filters) updateDashboardFiltersVisibility();
-    }
-}
 
 // Add: sorting state and setter
 let gridSort = 'DateDesc';
@@ -770,70 +736,6 @@ function setGridSort(value) {
     renderProfileGrid();
 }
 
-// Patch: renderProfileGrid to apply sorting and support CSV generation
-function renderProfileGrid() {
-    const tbody = document.querySelector('#profileGrid tbody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-
-    const rvMap = computeRvValues(profileEvaluations);
-    const cumRvMap = computeCumulativeRv(profileEvaluations, rvMap);
-
-    // Define evals, apply filters, then sort
-    const evals = [...getFilteredEvaluations()];
-    evals.sort((a, b) => {
-        const avgA = parseFloat(a.fitrepAverage || '0');
-        const avgB = parseFloat(b.fitrepAverage || '0');
-        const rvA = rvMap.get(a.evaluationId) ?? 0;
-        const rvB = rvMap.get(b.evaluationId) ?? 0;
-        const dateA = new Date(a.marineInfo?.evaluationPeriod?.to || 0).getTime();
-        const dateB = new Date(b.marineInfo?.evaluationPeriod?.to || 0).getTime();
-        switch (gridSort) {
-            case 'AvgAsc': return avgA - avgB;
-            case 'AvgDesc': return avgB - avgA;
-            case 'RvAsc': return rvA - rvB;
-            case 'RvDesc': return rvB - rvA;
-            case 'DateAsc': return dateA - dateB;
-            case 'DateDesc':
-            default: return dateB - dateA;
-        }
-    });
-    
-    // Render rank summary bar (High/Avg/Low/#Rpts)
-    renderRankSummary(evals);
-
-    evals.forEach((evaluation, idx) => {
-        const row = document.createElement('tr');
-        const traitGrades = getTraitGrades(evaluation);
-        const rv = rvMap.get(evaluation.evaluationId) ?? 0;
-        const cumRv = cumRvMap.get(evaluation.evaluationId) ?? rv;
-        const avg = parseFloat(evaluation.fitrepAverage || '0').toFixed(2);
-
-        row.innerHTML = `
-            <td>${idx + 1}</td>
-            <td style="text-align: left;">${evaluation.marineInfo?.name || '-'}</td>
-            <td>${capitalize(evaluation.occasion || '-')}</td>
-            <td>${(evaluation.marineInfo?.evaluationPeriod?.to || '').slice(0, 10) || '-'}</td>
-            <td class="grade-cell">${traitGrades['Performance'] || '-'}</td>
-            <td class="grade-cell">${traitGrades['Proficiency'] || '-'}</td>
-            <td class="grade-cell">${traitGrades['Courage'] || '-'}</td>
-            <td class="grade-cell">${traitGrades['Stress Tolerance'] || '-'}</td>
-            <td class="grade-cell">${traitGrades['Initiative'] || '-'}</td>
-            <td class="grade-cell">${traitGrades['Leading'] || '-'}</td>
-            <td class="grade-cell">${traitGrades['Developing Others'] || '-'}</td>
-            <td class="grade-cell">${traitGrades['Setting the Example'] || '-'}</td>
-            <td class="grade-cell">${traitGrades['Well-Being/Health'] || '-'}</td>
-            <td class="grade-cell">${traitGrades['Communication Skills'] || '-'}</td>
-            <td class="grade-cell">${traitGrades['Professional Military Education'] || '-'}</td>
-            <td class="grade-cell">${traitGrades['Decision Making'] || '-'}</td>
-            <td class="grade-cell">${traitGrades['Judgement'] || '-'}</td>
-            <td class="avg-cell">${avg}</td>
-            <td>${badgeForRv(rv)}</td>
-            <td>${badgeForRv(cumRv)}</td>
-        `;
-        tbody.appendChild(row);
-    });
-}
 
 // Helpers for grid view
 /* Removed duplicate getTraitGrades (older version). Using the later, refactored version defined further below. */
@@ -988,38 +890,6 @@ function renderRankSummaryFromDom() {
 // Add: CSV export based on current render order
 /* Removed duplicate exportProfileGridCsv (older version). Using the later version defined below. */
 
-// Show Dashboard directly from the login card
-function openProfileDashboardFromLogin() {
-    const loginCard = document.getElementById('profileLoginCard');
-    const dashboardCard = document.getElementById('profileDashboardCard');
-
-    if (!loginCard || !dashboardCard) {
-        console.warn('Profile cards not found in DOM.');
-        return;
-    }
-
-    const stored = loadProfileFromStorage();
-    if (!stored) {
-        alert('No saved RS profile found. Please login first or save an evaluation.');
-        return;
-    }
-
-    // Hydrate session from storage snapshot
-    window.currentProfile = {
-        rsName: stored.rsName,
-        rsEmail: stored.rsEmail,
-        rsRank: stored.rsRank,
-        totalEvaluations: (stored.evaluations || []).length,
-        lastUpdated: stored.lastUpdated || new Date().toISOString()
-    };
-    window.profileEvaluations = stored.evaluations || [];
-
-    // Ensure routing sees this as an explicit user action
-    sessionStorage.setItem('login_source', 'form');
-    
-    // Render via the existing dashboard entrypoint
-    showProfileDashboard();
-}
 
 // Auto-open Dashboard on load if a profile exists
 function showProfileDashboardOnLoad() {
@@ -1154,7 +1024,19 @@ function mergeEvaluations(localEvaluations = [], remoteEvaluations = []) {
     const put = (ev) => {
         if (!ev) return;
         // Use a stronger composite key when evaluationId is missing to reduce collisions
-        const id = ev.evaluationId || `composite:${ev.marineInfo?.name || ''}|${ev.marineInfo?.rank || ''}|${ev.occasion || ''}|${ev.marineInfo?.evaluationPeriod?.from || ''}`;
+        const id = ev.evaluationId || `composite:${
+            (ev.marineInfo?.name || '').trim()
+        }|${
+            (ev.marineInfo?.rank || '').trim()
+        }|${
+            (ev.occasion || '').trim()
+        }|${
+            (ev.marineInfo?.evaluationPeriod?.from || '').slice(0,10)
+        }|${
+            (ev.marineInfo?.evaluationPeriod?.to || '').slice(0,10)
+        }|${
+            (ev.createdAt || ev.lastUpdated || ev.completedDate || '')
+        }`;
         const prev = byId.get(id);
         const ts = new Date(ev.lastUpdated || ev.completedDate || 0).getTime();
         const prevTs = prev ? new Date(prev.lastUpdated || prev.completedDate || 0).getTime() : -1;
@@ -1445,7 +1327,16 @@ function getTraitGrades(evaluation) {
         'Decision Making': ['Decision Making Ability', 'Decision Making'],
         'Judgement': ['Judgment', 'Judgement'],
         // Section H aliases
-        'Evals': ['Evaluations', 'Fulfillment of Evaluation Responsibilities', 'Section H', 'Evals']
+        'Evals': [
+            'Evaluations',
+            'Evaluation',
+            'Eval',
+            'Evals',
+            'Fulfillment of Evaluation Responsibilities',
+            'Evaluation Responsibilities',
+            'Fulfillment of Eval Responsibilities',
+            'Section H'
+        ]
     };
 
     const items = Object.values(evaluation.traitEvaluations || {});
@@ -1548,15 +1439,15 @@ function exportProfileGridCsv() {
     const headers = [
         'Rank','Marine','Occasion','Ending Date',
         'Performance','Proficiency','Courage','Stress Tolerance','Initiative','Leading','Developing Others',
-        'Setting the Example','Well-Being/Health','Communication Skills','PME','Decision Making','Judgement','Eval',
+        'Setting the Example','Well-Being/Health','Communication Skills','PME','Decision Making','Judgement','Evals',
         'Avg','RV','Cum RV'
     ];
 
     const rows = evals.map((e, i) => {
         const traits = getTraitGrades(e);
         const avg = parseFloat(e.fitrepAverage || '0').toFixed(2);
-        const rv = (computeRvValues(evals).get(e.evaluationId) ?? 0);
-        const cumRv = (computeCumulativeRv(evals, computeRvValues(evals)).get(e.evaluationId) ?? rv);
+        const rv = (rvMap.get(e.evaluationId) ?? 0);
+        const cumRv = (cumRvMap.get(e.evaluationId) ?? rv);
         const endDate = (e.marineInfo?.evaluationPeriod?.to || '').slice(0, 10) || '-';
         return [
             i + 1,
