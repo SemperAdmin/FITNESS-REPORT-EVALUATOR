@@ -631,6 +631,8 @@
     <script>
         console.log('HTML loaded successfully');
     </script>
+    <!-- API base configuration must load before any scripts that issue API requests -->
+    <script src="js/config.js"></script>
     <script src="js/data.js"></script>
     <script src="js/githubService.js"></script>
     <script src="js/voice.js"></script>

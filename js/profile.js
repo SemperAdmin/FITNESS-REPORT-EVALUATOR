@@ -145,9 +145,12 @@ async function accountLogin() {
 
 // Small helper for backend POST
 async function postJson(url, body) {
+    const base = (typeof window !== 'undefined' && window.API_BASE_URL)
+        ? window.API_BASE_URL
+        : window.location.origin;
     const endpoint = (url.startsWith('https://') || url.startsWith('http://'))
         ? url
-        : new URL(url, window.location.origin).toString();
+        : new URL(url, base).toString();
     const resp = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
