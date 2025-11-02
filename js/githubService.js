@@ -64,13 +64,13 @@ class GitHubDataService {
      * @returns {Promise<string|null>}
      */
     async getTokenFromEnvironment() {
-        // Approach 0: Dev-only global config (if explicitly injected)
-        if (typeof window !== 'undefined' && window.GITHUB_CONFIG?.token) {
-            return window.GITHUB_CONFIG.token;
-        }
-
-        // Approach 0b: Dev-only localStorage to avoid editing files
         if (typeof window !== 'undefined') {
+            // Approach 0: Dev-only global config (if explicitly injected)
+            if (window.GITHUB_CONFIG?.token) {
+                return window.GITHUB_CONFIG.token;
+            }
+
+            // Approach 0b: Dev-only localStorage to avoid editing files
             try {
                 const devToken = window.localStorage.getItem('FITREP_DEV_TOKEN');
                 if (devToken) return devToken;
