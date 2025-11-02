@@ -1,5 +1,6 @@
 const express = require('express');
-const fetch = require('node-fetch');
+// Support node-fetch v3 in CommonJS via dynamic import wrapper
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 const bcrypt = require('bcryptjs');
 
 const app = express();
