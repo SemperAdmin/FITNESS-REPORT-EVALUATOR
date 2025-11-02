@@ -145,15 +145,16 @@ async function accountLogin() {
 
 // Small helper for backend POST
 async function postJson(url, body) {
-    const resp = await fetch(url, {
+    const endpoint = url.startsWith('http') ? url : new URL(url, window.location.origin).toString();
+    const resp = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
     });
     if (!resp.ok) {
-        let error = 'Request failed';
+        let error = `Request failed (${resp.status})`;
         try { const data = await resp.json(); error = data.error || error; } catch (_) {}
-        return { ok: false, error };
+        return { ok: false, error, status: resp.status };
     }
     try {
         const data = await resp.json();
