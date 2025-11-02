@@ -1,0 +1,66 @@
+name: Create User Profile
+
+on:
+  repository_dispatch:
+    types: [create-user]
+
+jobs:
+  create_user:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate payload
+        run: |
+          echo "Checking client_payload..."
+          if [ -z "${{ github.event.client_payload.user.rsEmail }}" ]; then echo "Missing rsEmail" && exit 1; fi
+          if [ -z "${{ github.event.client_payload.user.rsName }}" ]; then echo "Missing rsName" && exit 1; fi
+          if [ -z "${{ github.event.client_payload.user.rsRank }}" ]; then echo "Missing rsRank" && exit 1; fi
+          if [ -z "${{ github.event.client_payload.user.passwordHash }}" ]; then echo "Missing passwordHash" && exit 1; fi
+
+      - name: Prepare profile JSON
+        id: prep
+        run: |
+          EMAIL="${{ github.event.client_payload.user.rsEmail }}"
+          NAME="${{ github.event.client_payload.user.rsName }}"
+          RANK="${{ github.event.client_payload.user.rsRank }}"
+          PWHASH="${{ github.event.client_payload.user.passwordHash }}"
+          EMAIL_PREFIX=$(echo "$EMAIL" | tr 'A-Z' 'a-z' | cut -d'@' -f1)
+
+          # Minimal user record; evaluations array empty to start
+          cat > user.json <<EOF
+          {
+            "rsEmail": "$EMAIL",
+            "rsName": "$NAME",
+            "rsRank": "$RANK",
+            "passwordHash": "$PWHASH",
+            "evaluationFiles": [],
+            "evaluations": [],
+            "createdDate": "$(date -Iseconds)",
+            "lastUpdated": "$(date -Iseconds)"
+          }
+          EOF
+
+          echo "email_prefix=$EMAIL_PREFIX" >> $GITHUB_OUTPUT
+
+      - name: Create or update user file in data repo
+        env:
+          GH_TOKEN: ${{ secrets.FITREP_DATA }}
+        run: |
+          EMAIL_PREFIX="${{ steps.prep.outputs.email_prefix }}"
+          OWNER_REPO="SemperAdmin/Fitness-Report-Evaluator-Data"
+          PATH="users/${EMAIL_PREFIX}.json"
+
+          # Get existing file SHA if present
+          SHA=$(gh api repos/$OWNER_REPO/contents/$PATH --jq .sha || true)
+          CONTENT_BASE64=$(base64 -w0 user.json)
+
+          if [ -z "$SHA" ]; then
+            gh api --method PUT repos/$OWNER_REPO/contents/$PATH \
+              -F message="Create user profile for ${EMAIL_PREFIX}" \
+              -F content="$CONTENT_BASE64"
+          else
+            gh api --method PUT repos/$OWNER_REPO/contents/$PATH \
+              -F message="Update user profile for ${EMAIL_PREFIX}" \
+              -F content="$CONTENT_BASE64" \
+              -F sha="$SHA"
+          fi
+

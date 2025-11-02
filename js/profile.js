@@ -54,6 +54,132 @@ async function profileLogin() {
     showProfileDashboard();
 }
 
+// Create Account -> sends rank, name, email, password to backend
+async function createAccount() {
+    const rank = document.getElementById('caRankInput')?.value.trim();
+    const name = document.getElementById('caNameInput')?.value.trim();
+    const email = document.getElementById('caEmailInput')?.value.trim();
+    const password = document.getElementById('caPasswordInput')?.value;
+
+    if (!rank || !name || !email || !password) {
+        alert('Please enter Rank, Name, Email, and Password.');
+        return;
+    }
+
+    try {
+        const res = await postJson('/api/account/create', { rank, name, email, password });
+        if (!res || !res.ok) {
+            const msg = res && res.error ? res.error : 'Account creation failed.';
+            alert(msg);
+            return;
+        }
+
+        // Optionally hydrate local profile for immediate UX
+        const profileKey = generateProfileKey(name, email);
+        const profile = {
+            rsName: name,
+            rsEmail: email,
+            rsRank: rank,
+            createdDate: new Date().toISOString(),
+            lastUpdated: new Date().toISOString(),
+            totalEvaluations: 0,
+            evaluationFiles: []
+        };
+        saveProfileToLocal(profileKey, profile);
+        currentProfile = profile;
+        profileEvaluations = [];
+        localStorage.setItem('current_profile', JSON.stringify(currentProfile));
+        localStorage.setItem('current_evaluations', JSON.stringify(profileEvaluations));
+        localStorage.setItem('has_profile', 'true');
+        sessionStorage.setItem('login_source', 'form');
+
+        alert('Account created. You are now signed in.');
+        showProfileDashboard();
+    } catch (err) {
+        console.error('createAccount error:', err);
+        alert('Account creation failed due to a network error.');
+    }
+}
+
+// Account Login -> email + password
+async function accountLogin() {
+    const email = document.getElementById('loginEmailInput')?.value.trim();
+    const password = document.getElementById('loginPasswordInput')?.value;
+    if (!email || !password) {
+        alert('Please enter Email and Password.');
+        return;
+    }
+
+    try {
+        const res = await postJson('/api/account/login', { email, password });
+        if (!res || !res.ok) {
+            const msg = res && res.error ? res.error : 'Login failed.';
+            alert(msg);
+            return;
+        }
+
+        const profile = res.profile || {
+            rsName: res.rsName,
+            rsEmail: email,
+            rsRank: res.rsRank,
+            totalEvaluations: (res.evaluations || []).length,
+            lastUpdated: new Date().toISOString(),
+            evaluationFiles: []
+        };
+
+        const profileKey = generateProfileKey(profile.rsName, profile.rsEmail);
+        saveProfileToLocal(profileKey, profile);
+        currentProfile = profile;
+        profileEvaluations = res.evaluations || [];
+        localStorage.setItem('current_profile', JSON.stringify(currentProfile));
+        localStorage.setItem('current_evaluations', JSON.stringify(profileEvaluations));
+        localStorage.setItem('has_profile', 'true');
+        sessionStorage.setItem('login_source', 'form');
+
+        showProfileDashboard();
+    } catch (err) {
+        console.error('accountLogin error:', err);
+        alert('Login failed due to a network error.');
+    }
+}
+
+// Small helper for backend POST
+async function postJson(url, body) {
+    const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+    });
+    if (!resp.ok) {
+        let error = 'Request failed';
+        try { const data = await resp.json(); error = data.error || error; } catch (_) {}
+        return { ok: false, error };
+    }
+    try {
+        const data = await resp.json();
+        return { ok: true, ...data };
+    } catch (_) {
+        return { ok: true };
+    }
+}
+
+// UI toggles for Create Account
+function showCreateAccount() {
+    const loginFields = document.getElementById('loginFields');
+    const createSection = document.getElementById('createAccountSection');
+    if (loginFields) { loginFields.style.display = 'none'; }
+    if (createSection) { createSection.style.display = 'block'; }
+    window.scrollTo({ top: 0, behavior: 'auto' });
+}
+
+function hideCreateAccount() {
+    const loginFields = document.getElementById('loginFields');
+    const createSection = document.getElementById('createAccountSection');
+    if (createSection) { createSection.style.display = 'none'; }
+    if (loginFields) { loginFields.style.display = 'block'; }
+    window.scrollTo({ top: 0, behavior: 'auto' });
+}
+
 // Skip -> show main app
 function skipProfileLogin() {
     currentProfile = null;
