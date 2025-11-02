@@ -8,6 +8,15 @@ app.use(express.json());
 // Serve static files for local preview
 app.use(express.static('.'));
 
+// Basic CORS support to allow cross-origin usage when hosted on static origins
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
 // Environment variables:
 // - DISPATCH_TOKEN: PAT with repo:dispatch permission to trigger repository_dispatch
 // - FITREP_DATA (optional, for login): PAT with repo read access to the data repository
