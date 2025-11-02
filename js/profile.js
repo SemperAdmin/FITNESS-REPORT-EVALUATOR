@@ -148,9 +148,14 @@ async function postJson(url, body) {
     const base = (typeof window !== 'undefined' && window.API_BASE_URL)
         ? window.API_BASE_URL
         : window.location.origin;
-    const endpoint = (url.startsWith('https://') || url.startsWith('http://'))
-        ? url
-        : new URL(url, base).toString();
+
+    // Resolve against base and enforce same-origin to prevent protocol-relative open redirects
+    const resolvedUrl = new URL(url, base);
+    const baseOrigin = new URL(base).origin;
+    if (resolvedUrl.origin !== baseOrigin) {
+        throw new Error('Cross-origin requests are not allowed.');
+    }
+    const endpoint = resolvedUrl.toString();
     const resp = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
