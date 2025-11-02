@@ -457,24 +457,48 @@
     <!-- Login Card: show after mode selection -->
     <div class="profile-card" id="profileLoginCard">
         <div class="profile-title">Reporting Senior Login</div>
-        <p class="profile-description">Sign in to manage saved evaluations and view your RS Dashboard.</p>
-    
-        <div class="form-group">
-            <label class="form-label">RS Rank</label>
-            <input type="text" class="form-input" id="rsRankInput" placeholder="e.g., Capt">
+        <p class="profile-description">Login with Email and Password to access your RS Dashboard.</p>
+
+        <div id="loginFields">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" id="loginEmailInput" placeholder="you@example.mil">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-input" id="loginPasswordInput" placeholder="Enter your password">
+            </div>
+            <div class="profile-actions">
+                <button class="btn btn-meets" onclick="accountLogin()">Login</button>
+                <button class="btn btn-secondary" onclick="skipProfileLogin()">Skip</button>
+                <button class="btn btn-primary" onclick="showCreateAccount()">Create Account</button>
+            </div>
         </div>
-        <div class="form-group">
-            <label class="form-label">RS Name</label>
-            <input type="text" class="form-input" id="rsNameInput" placeholder="Last, First MI">
-        </div>
-        <div class="form-group">
-            <label class="form-label">RS Email</label>
-            <input type="email" class="form-input" id="rsEmailInput" placeholder="you@example.mil">
-        </div>
-    
-        <div class="profile-actions">
-            <button class="btn btn-meets" onclick="profileLogin()">Login</button>
-            <button class="btn btn-secondary" onclick="skipProfileLogin()">Skip</button>
+
+        <div id="createAccountSection" style="display: none;">
+            <hr style="margin: 24px 0; opacity: 0.3;">
+            <div class="profile-title">Create Account</div>
+            <p class="profile-description">Create a secure profile. Your password will be stored hashed.</p>
+            <div class="form-group">
+                <label class="form-label">Rank</label>
+                <input type="text" class="form-input" id="caRankInput" placeholder="e.g., Capt">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-input" id="caNameInput" placeholder="Last, First MI">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" id="caEmailInput" placeholder="you@example.mil">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-input" id="caPasswordInput" placeholder="Choose a strong password">
+            </div>
+            <div class="profile-actions">
+                <button class="btn btn-meets" onclick="createAccount()">Create Account</button>
+                <button class="btn btn-secondary" onclick="hideCreateAccount()">Back to Login</button>
+            </div>
         </div>
     </div>
     
