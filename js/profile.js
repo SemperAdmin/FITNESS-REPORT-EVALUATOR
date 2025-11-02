@@ -1013,8 +1013,52 @@ function mergeProfiles(local, remote) {
 }
 
 async function syncEvaluationToGitHub(evaluation) {
-    // Stubbed; return false to indicate not synced
-    return false;
+    try {
+        // Validate user email (required for per-user file path)
+        const userEmail = (currentProfile && currentProfile.rsEmail) || (evaluation?.rsInfo?.email) || '';
+        if (!userEmail || userEmail === 'offline@local') {
+            console.warn('GitHub sync skipped: no valid user email');
+            return false;
+        }
+
+        // Obtain token from environment/backend; fallback to optional local dev config
+        let token = null;
+        try {
+            token = await githubService.getTokenFromEnvironment?.();
+        } catch (e) {
+            console.warn('Token retrieval failed:', e);
+        }
+        if (!token && typeof window !== 'undefined' && window.GITHUB_CONFIG?.token) {
+            token = window.GITHUB_CONFIG.token; // Dev-only fallback
+        }
+        if (!token) {
+            console.warn('GitHub sync unavailable: token not found');
+            return false;
+        }
+
+        // Initialize and verify connection
+        githubService.initialize(token);
+        const connected = await githubService.verifyConnection?.();
+        if (!connected) {
+            console.warn('GitHub connection failed; check token scopes and repo access');
+            return false;
+        }
+
+        // Persist evaluation via service
+        const result = await githubService.saveEvaluation(evaluation, userEmail);
+        if (result?.success) {
+            evaluation.syncStatus = 'synced';
+            console.log('Evaluation synced to GitHub:', result.message);
+            return true;
+        }
+
+        evaluation.syncStatus = 'error';
+        console.error('GitHub sync failed:', result?.error || result);
+        return false;
+    } catch (error) {
+        console.error('Error during GitHub sync:', error);
+        return false;
+    }
 }
 
 // Helper function to merge evaluations with conflict resolution
@@ -1667,6 +1711,46 @@ function mergeProfiles(local, remote) {
 }
 
 async function syncEvaluationToGitHub(evaluation) {
-    // Stubbed; return false to indicate not synced
-    return false;
+    try {
+        const userEmail = (currentProfile && currentProfile.rsEmail) || (evaluation?.rsInfo?.email) || '';
+        if (!userEmail || userEmail === 'offline@local') {
+            console.warn('GitHub sync skipped: no valid user email');
+            return false;
+        }
+
+        let token = null;
+        try {
+            token = await githubService.getTokenFromEnvironment?.();
+        } catch (e) {
+            console.warn('Token retrieval failed:', e);
+        }
+        if (!token && typeof window !== 'undefined' && window.GITHUB_CONFIG?.token) {
+            token = window.GITHUB_CONFIG.token;
+        }
+        if (!token) {
+            console.warn('GitHub sync unavailable: token not found');
+            return false;
+        }
+
+        githubService.initialize(token);
+        const connected = await githubService.verifyConnection?.();
+        if (!connected) {
+            console.warn('GitHub connection failed; check token scopes and repo access');
+            return false;
+        }
+
+        const result = await githubService.saveEvaluation(evaluation, userEmail);
+        if (result?.success) {
+            evaluation.syncStatus = 'synced';
+            console.log('Evaluation synced to GitHub:', result.message);
+            return true;
+        }
+
+        evaluation.syncStatus = 'error';
+        console.error('GitHub sync failed:', result?.error || result);
+        return false;
+    } catch (error) {
+        console.error('Error during GitHub sync:', error);
+        return false;
+    }
 }
